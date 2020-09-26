@@ -28,7 +28,7 @@ class Strategy:
         # Just move to the nearest portal
         return CharacterDecision(
                     decision_type="MOVE",
-                    action_position=self.find_position_to_move(self.my_player, self.api.find_closest_portal(self.curr_pos)),
+                    action_position=self.find_position_to_move(self.curr_pos, self.api.find_closest_portal(self.curr_pos)),
                     action_index=0
                 )
 
@@ -40,17 +40,18 @@ class Strategy:
 
         if len(monster_locations) > 0:
             monsters_within_range = self.api.find_enemies_in_range_of_attack_by_distance(self.curr_pos)
+            monster_position = self.find_position_to_move(self.curr_pos, monsters[0].get_position())
+
             if (monster_locations[0] in monsters_within_range):
                 return CharacterDecision(
                     decision_type="ATTACK",
-                    action_position=self.find_position_to_move(self.my_player, monster_locations[0]),
+                    action_position=monster_position,
                     action_index=0
                 )
             else:
-                move_position = self.path_find(processed_board, self.my_player, monster_locations[0])
                 return CharacterDecision(
                     decision_type="MOVE",
-                    action_position=move_position,
+                    action_position=monster_position,
                     action_index=0
                 )
 
@@ -104,8 +105,8 @@ class Strategy:
 
 
     # feel free to write as many helper functions as you need!
-    def find_position_to_move(self, player, destination: Position) -> Position:
-        path = self.api.find_path(player.get_position(), destination)
+    def find_position_to_move(self, player: Position, destination: Position) -> Position:
+        path = self.api.find_path(player, destination)
         self.logger.info(path)
         pos = None
         if len(path) < player.get_speed():
@@ -114,25 +115,3 @@ class Strategy:
             pos = path[player.get_speed() - 1]
         return pos
 
-    def move_to(self, start: Position, end: Position):
-        if start.x < end.x:
-            return Position.create(start.x+1, start.y, start.board_id)
-        elif start.x > end.x:
-            return Position.create(start.x-1, start.y, start.board_id)
-        elif start.y < end.y:
-            return Position.create(start.x, start.y+1, start.board_id)
-        elif start.y > end.y:
-            return Position.create(start.x, start.y-1, start.board_id)
-        else:
-            return None
-
-    def process_board(self, board):
-        grid = board.get_grid()
-        processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
-        return processed_grid
-
-    def find_closest(self, characters: list):
-        return min(characters, lambda character: self.curr_pos.manhattan_distance(character.position))
-
-    def within_range(self, position: Position):
-        return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
