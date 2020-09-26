@@ -28,7 +28,6 @@ class Position:
         position_builder.x = self.x
         position_builder.y = self.y
         position_builder.board_id = self.board_id
-    
         return position_builder
 
     def get_x(self):
@@ -56,6 +55,6 @@ class Position:
         if other.board_id != self.board_id:
             return sys.maxsize
         return abs(self.x - other.x) + abs(self.y - other.y)
-
+    
     # def build_proto_class(self):
     #     return self.position_proto
