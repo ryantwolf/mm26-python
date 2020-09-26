@@ -69,19 +69,13 @@ class Strategy:
         self.logger.info(dict_move)
         minimum = min(dict_move)
         self.logger.info(minimum)
-        for i in range(len(board)):
+        for j in range(len(board[0])):
             row = []
-            for j in range(len(board[i])):
-                row.append(board[i][j])
+            for i in range(len(board)):
+                row.append("%02d" % board[i][j])
             self.logger.info(row)
         return dict_move[minimum]
 
-        self.logger.info("I'm an idiot, here's the calculated board")
-        for i in range(len(board)):
-            row = []
-            for j in range(len(board[i])):
-                row.append(board[i][j])
-            self.logger.info(row)
 
     def process_board(self, board):
         grid = board.get_grid()
