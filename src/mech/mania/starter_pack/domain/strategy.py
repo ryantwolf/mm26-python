@@ -26,7 +26,7 @@ class Strategy:
 
         self.logger.info("In make_decision")
 
-        monster_position = game_state.get_monsters_on_board
+        monster_position = game_state.get_monsters_on_board()
 
         processed_board = self.process_board(game_state.get_board(self.curr_pos.board_id))
         monster_location = self.find_closest(game_state.get_monsters_on_board())
@@ -35,14 +35,14 @@ class Strategy:
             return CharacterDecision(
                 decision_type="ATTACK",
                 action_position=monster_location,
-                action_index=None
+                action_index=0
             )
         else:
             move_position = self.path_find(processed_board, self.curr_pos, monster_location)
             return CharacterDecision(
                 decision_type="MOVE",
                 action_position=move_position,
-                action_index=None
+                action_index=0
             )
 
         last_action, type = self.memory.get_value("last_action", str)
@@ -85,14 +85,14 @@ class Strategy:
         self.memory.set_value("last_action", "MOVE")
         decision = CharacterDecision(
             decision_type="MOVE",
-            action_position=find_position_to_move(self.my_player, enemy_pos),
+            action_position=self.find_position_to_move(self.my_player, enemy_pos),
             action_index=None
         )
 
         # Begining of my code
         decision = CharacterDecision(
             decision_type="MOVE",
-            action_position=find_position_to_move(self.my_player, self.api.find_closest_portal(self.my_player)),
+            action_position=self.find_position_to_move(self.my_player, self.api.find_closest_portal(self.my_player)),
             action_index=None
         )
 
@@ -130,7 +130,7 @@ class Strategy:
         return abs(self.x - end.x) + abs(self.y-end.y)
 
     def find_closest(self, characters: list):
-        return min(characters, lambda character: dist(character.position))
+        return min(characters, lambda character: self.dist(self.curr_pos, character.position))
 
     def within_range(self, position: Position):
         return self.my_player.get_weapon().get_range() >= self.dist(self.curr_pos, position)
