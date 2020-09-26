@@ -11,7 +11,53 @@ class Strategy:
         self.logger = logging.getLogger('strategy')
         self.logger.setLevel(logging.DEBUG)
         logging.basicConfig(level = logging.INFO)
+    
+    def crap_path_find(self, board, start, end):
+        board = []
+        board[start.x, start.y] = 0
+        board[end.x, end.y] = 1
+        while (board[start.x, start.y] == 0):
+            for i in range(len(board)):
+                for j in range(len(board[0])):
+                    if self.checkBounds(board, i + 1, j):
+                        if board[i + 1][j] > board[i][j] + 1:
+                            board[i + 1][j] = board[i][j] + 1
+                    if self.checkBounds(board, i - 1, j):
+                        if board[i - 1][j] > board[i][j] + 1:
+                            board[i - 1][j] = board[i][j] + 1
+                    if self.checkBounds(board, i, j+1):
+                        if board[i][j+1] > board[i][j] + 1:
+                            board[i][j+1] = board[i][j] + 1
+                    if self.checkBounds(board, i, j-1):
+                        if board[i][j-1] > board[i][j] + 1:
+                            board[i][j-1] = board[i][j] + 1
 
+        if self.checkBounds(board, i + 1, j):
+            if board[i + 1][j] > 0:
+                return Position.create(i+1,j, start.get_board_id())
+        if self.checkBounds(board, i - 1, j):
+            if board[i - 1][j] > 0:
+                return Position.create(i-1,j, start.get_board_id())
+        if self.checkBounds(board, i, j + 1):
+            if board[i][j +1] > 0:
+                return Position.create(i,j+1, start.get_board_id())
+        if self.checkBounds(board, i, j - 1):
+            if board[i][j -1] > 0:
+                return Position.create(i,j-1, start.get_board_id())
+        self.logger.info("I'm an idiot, here's the calculated board")
+        self.logger.info(board)
+
+    def move_to(self, target):
+        pos = self.crap_path_find(target)
+        return CharacterDecision(
+            decision_type = "MOVE",
+            action_position = Position(Position.create(pos.get_x(), 
+                                                        pos.get_y() + 1, 
+                                                        pos.get_board_id())),
+            action_index = 0
+        )
+        
+        
     def make_decision(self, player_name: str, game_state: GameState) -> CharacterDecision:
         """
         Parameters:
@@ -24,13 +70,50 @@ class Strategy:
         self.curr_pos = self.my_player.get_position()
 
         self.logger.info("In make_decision")
+        
+        self.logger.info('X: ' + str(self.curr_pos.get_x()))
+        self.logger.info('Y: ' + str(self.curr_pos.get_y()))
+        
+        # x = self.curr_pos.get_x()
+        # y = self.curr_pos.get_y()
+        board_id = self.curr_pos.get_board_id()
+        
+        monsters = game_state.get_monsters_on_board(board_id)
+        portals = self.board.get_portals()
+        
+        if board_id == 'chairsquestionmark':
+            return self.move_to(portals[0])
+        else:
+            return self.move_toward(monsters[0])
+        
+        # if x == 19:
+        #     self.logger.info('Move down')
+        #     return CharacterDecision(
+        #         decision_type = "MOVE",
+        #         action_position = Position(Position.create(x, 
+        #                                                    y + 1, 
+        #                                                    board_id)),
+        #         action_index = 0
+        #     )
+        # else:
+        #     self.logger.info('Move right')
+        #     return CharacterDecision(
+        #         decision_type = "MOVE",
+        #         action_position = Position(Position.create(x + 1, 
+        #                                                    y, 
+        #                                                    board_id)),
+        #         action_index = 0
+        #     )
 
+    
+        game_state.get_monsters_on_board(self.curr_pos.get_board_id)
+        
         # Just move to the nearest portal
-        return CharacterDecision(
-                    decision_type="MOVE",
-                    action_position=self.find_position_to_move(self.my_player, self.api.find_closest_portal(self.curr_pos)),
-                    action_index=0
-                )
+        # return CharacterDecision(
+        #             decision_type="MOVE",
+        #             action_position=self.find_position_to_move(self.my_player, self.api.find_closest_portal(self.curr_pos)),
+        #             action_index=0
+        #         )
 
 
         processed_board = self.process_board(game_state.get_board(self.curr_pos.board_id))

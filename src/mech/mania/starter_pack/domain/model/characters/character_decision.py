@@ -1,9 +1,13 @@
 from mech.mania.engine.domain.model import character_pb2
 from mech.mania.starter_pack.domain.model.characters.position import Position
 
+import logging
 
 class CharacterDecision:
     def __init__(self, decision_type: str, action_position: Position, action_index=None):
+        self.logger = logging.getLogger('strategy')
+        self.logger.setLevel(logging.DEBUG)
+        logging.basicConfig(level = logging.INFO)
         self.action_position = action_position
         self.decision_type = decision_type
         if action_index is not None:
@@ -29,6 +33,9 @@ class CharacterDecision:
 
         decision_builder.index = self.action_index
         if self.action_position is not None:
+            temp = self.action_position.build_proto_class()
+            self.logger.info(temp)
+            self.logger.info(type(temp))
             decision_builder.target_position.CopyFrom(self.action_position.build_proto_class())
-
+            self.logger.info(decision_builder.target_position)
         return decision_builder
