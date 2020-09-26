@@ -126,7 +126,16 @@ class Strategy:
 
     def process_board(self, board):
         grid = board.get_grid()
-        processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
+        processed_grid = []
+        for row in grid:
+            processed_row = []
+            for tile in row:
+                if tile.get_type() == "IMPASSIBLE":
+                    processed_row.append(-1)
+                else:
+                    processed_row.append(0)
+            processed_grid.append(row)
+        #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
 
     def find_closest(self, characters: list):
@@ -134,4 +143,46 @@ class Strategy:
 
     def within_range(self, position: Position):
         return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
+    
+    def path_find(self, board, start, end):
+        board[start.x, start.y] = 0
+        board[end.x, end.y] = 1
+        while (board[start.x, start.y] == 0):
+            for i in range(len(board)):
+                for j in range(len(board[0])):
+                    if self.checkBounds(board, i + 1, j):
+                        if board[i + 1][j] > board[i][j] + 1:
+                            board[i + 1][j] = board[i][j] + 1
+                    if self.checkBounds(board, i - 1, j):
+                        if board[i - 1][j] > board[i][j] + 1:
+                            board[i - 1][j] = board[i][j] + 1
+                    if self.checkBounds(board, i, j+1):
+                        if board[i][j+1] > board[i][j] + 1:
+                            board[i][j+1] = board[i][j] + 1
+                    if self.checkBounds(board, i, j-1):
+                        if board[i][j-1] > board[i][j] + 1:
+                            board[i][j-1] = board[i][j] + 1
 
+        if self.checkBounds(board, i + 1, j):
+            if board[i + 1][j] > 0:
+                return Position.create(i+1,j, start.get_board_id())
+        if self.checkBounds(board, i - 1, j):
+            if board[i - 1][j] > 0:
+                return Position.create(i-1,j, start.get_board_id())
+        if self.checkBounds(board, i, j + 1):
+            if board[i][j +1] > 0:
+                return Position.create(i,j+1, start.get_board_id())
+        if self.checkBounds(board, i, j - 1):
+            if board[i][j -1] > 0:
+                return Position.create(i,j-1, start.get_board_id())
+        self.logger.info("I'm an idiot, here's the calculated board")
+        self.logger.info(board)
+
+    def checkBounds(self, board, i, j):
+        if i < 0 or j < 0:
+            return False
+        if i >= len(board[0]) or j >= len(board):
+            return False
+        if board[i][j] == -1:
+            return False
+        return True
