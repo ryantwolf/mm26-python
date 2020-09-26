@@ -373,3 +373,21 @@ class Strategy:
         if board[i][j] == -1:
             return False
         return True
+
+    def goTo(self, toPosition):
+        board = self.process_board(self.board)
+        nextMove = self.path_find(board, self.curr_pos, toPosition)
+        return CharacterDecision(
+                    decision_type="MOVE",
+                    action_position=nextMove,
+                    action_index=0
+                )
+
+    def goTo(self, toPosition, monsters):
+        board = self.process_board_with_agro(self.board, toPosition, monsters)
+        nextMove = self.path_find(board, self.curr_pos, toPosition)
+        return CharacterDecision(
+            decision_type="MOVE",
+            action_position=nextMove,
+            action_index=0
+        )
