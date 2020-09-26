@@ -32,9 +32,6 @@ class Strategy:
                     action_index=0
                 )
 
-
-        processed_board = self.process_board(game_state.get_board(self.curr_pos.board_id))
-
         # Move to the nearest monster
         monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
 
@@ -114,4 +111,27 @@ class Strategy:
         else:
             pos = path[player.get_speed() - 1]
         return pos
+
+    def move_to(self, start: Position, end: Position):
+        if start.x < end.x:
+            return Position.create(start.x + 1, start.y, start.board_id)
+        elif start.x > end.x:
+            return Position.create(start.x - 1, start.y, start.board_id)
+        elif start.y < end.y:
+            return Position.create(start.x, start.y + 1, start.board_id)
+        elif start.y > end.y:
+            return Position.create(start.x, start.y - 1, start.board_id)
+        else:
+            return None
+
+    def process_board(self, board):
+        grid = board.get_grid()
+        processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
+        return processed_grid
+
+    def find_closest(self, characters: list):
+        return min(characters, lambda character: self.curr_pos.manhattan_distance(character.position))
+
+    def within_range(self, position: Position):
+        return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
 
