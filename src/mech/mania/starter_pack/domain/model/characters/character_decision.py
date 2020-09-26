@@ -33,9 +33,5 @@ class CharacterDecision:
 
         decision_builder.index = self.action_index
         if self.action_position is not None:
-            temp = self.action_position.build_proto_class()
-            self.logger.info(temp)
-            self.logger.info(type(temp))
             decision_builder.target_position.CopyFrom(self.action_position.build_proto_class())
-            self.logger.info(decision_builder.target_position)
         return decision_builder
