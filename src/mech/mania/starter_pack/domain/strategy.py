@@ -4,7 +4,6 @@ from mech.mania.starter_pack.domain.model.characters.character_decision import C
 from mech.mania.starter_pack.domain.model.characters.position import Position
 from mech.mania.starter_pack.domain.model.game_state import GameState
 from mech.mania.starter_pack.domain.api import API
-from mech.mania.starter_pack.domain.model.board import Board
 
 class Strategy:
     def __init__(self, memory):
@@ -26,24 +25,36 @@ class Strategy:
 
         self.logger.info("In make_decision")
 
-        monster_position = game_state.get_monsters_on_board()
+        # Just move to the nearest portal
+        return CharacterDecision(
+                    decision_type="MOVE",
+                    action_position=self.find_position_to_move(self.my_player, self.api.find_closest_portal(self.curr_pos)),
+                    action_index=0
+                )
+
 
         processed_board = self.process_board(game_state.get_board(self.curr_pos.board_id))
-        monster_location = self.find_closest(game_state.get_monsters_on_board())
 
-        if self.within_range(monster_location):
-            return CharacterDecision(
-                decision_type="ATTACK",
-                action_position=monster_location,
-                action_index=0
-            )
-        else:
-            move_position = self.path_find(processed_board, self.curr_pos, monster_location)
-            return CharacterDecision(
-                decision_type="MOVE",
-                action_position=move_position,
-                action_index=0
-            )
+        # Move to the nearest monster
+        monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
+
+        if len(monster_locations) > 0:
+            monsters_within_range = self.api.find_enemies_in_range_of_attack_by_distance(self.curr_pos)
+            if (monster_locations[0] in monsters_within_range):
+                return CharacterDecision(
+                    decision_type="ATTACK",
+                    action_position=self.find_position_to_move(self.my_player, monster_locations[0]),
+                    action_index=0
+                )
+            else:
+                move_position = self.path_find(processed_board, self.my_player, monster_locations[0])
+                return CharacterDecision(
+                    decision_type="MOVE",
+                    action_position=move_position,
+                    action_index=0
+                )
+
+        #Other code
 
         last_action, type = self.memory.get_value("last_action", str)
         if last_action is not None and last_action == "PICKUP":
@@ -89,19 +100,13 @@ class Strategy:
             action_index=None
         )
 
-        # Begining of my code
-        decision = CharacterDecision(
-            decision_type="MOVE",
-            action_position=self.find_position_to_move(self.my_player, self.api.find_closest_portal(self.my_player)),
-            action_index=None
-        )
-
         return decision
 
 
     # feel free to write as many helper functions as you need!
-    def find_position_to_move(self, player: Position, destination: Position) -> Position:
+    def find_position_to_move(self, player, destination: Position) -> Position:
         path = self.api.find_path(player.get_position(), destination)
+        self.logger.info(path)
         pos = None
         if len(path) < player.get_speed():
             pos = path[-1]
@@ -121,16 +126,13 @@ class Strategy:
         else:
             return None
 
-    def process_board(self, board: Board):
+    def process_board(self, board):
         grid = board.get_grid()
         processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
 
-    def dist(self, start, end):
-        return abs(self.x - end.x) + abs(self.y-end.y)
-
     def find_closest(self, characters: list):
-        return min(characters, lambda character: self.dist(self.curr_pos, character.position))
+        return min(characters, lambda character: self.curr_pos.manhattan_distance(character.position))
 
     def within_range(self, position: Position):
-        return self.my_player.get_weapon().get_range() >= self.dist(self.curr_pos, position)
+        return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
