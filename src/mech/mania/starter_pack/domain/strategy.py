@@ -13,10 +13,9 @@ class Strategy:
         logging.basicConfig(level = logging.INFO)
     
     def path_find(self, board, start, end):
-        board = []
-        board[start.x, start.y] = 0
-        board[end.x, end.y] = 1
-        while (board[start.x, start.y] == 0):
+        board[start.x][start.y] = 0
+        board[end.x][end.y] = 1
+        while (board[start.x][start.y] == 0):
             for i in range(len(board)):
                 for j in range(len(board[0])):
                     if self.checkBounds(board, i + 1, j):
@@ -61,15 +60,8 @@ class Strategy:
         #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
 
-    def move_to(self, target):
+    def move_toward(self, target):
         pos = self.path_find(self.process_board(self.board), self.curr_pos, target)
-        return CharacterDecision(
-            decision_type = "MOVE",
-            action_position = Position(Position.create(self.curr_pos.get_x(), 
-                                                        self.curr_pos.get_y() + 1, 
-                                                        self.curr_pos.get_board_id())),
-            action_index = 0
-        )
         return CharacterDecision(
             decision_type = "MOVE",
             action_position = Position(Position.create(pos.get_x(), 
@@ -95,24 +87,29 @@ class Strategy:
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
         
-        return CharacterDecision(
-            decision_type = "MOVE",
-            action_position = Position(Position.create(self.curr_pos.get_x(), 
-                                                        self.curr_pos.get_y() + 1, 
-                                                        self.curr_pos.get_board_id())),
-            action_index = 0
-        )
-
         # x = self.curr_pos.get_x()
         # y = self.curr_pos.get_y()
         board_id = self.curr_pos.get_board_id()
         
         monsters = game_state.get_monsters_on_board(board_id)
+        self.logger.info("MONSTERS: ")
+        for monster in monsters:
+            self.logger.info(monster.get_name())
+            if monster.get_position().manhattan_distance(self.curr_pos) == 1:
+                return CharacterDecision(
+                    decision_type = "ATTACK",
+                    action_position = monster.get_position(),
+                    action_index = 0
+                )
+
+        
         portals = self.board.get_portals()
         
         if board_id == 'chairsquestionmark':
-            return self.move_to(portals[0])
+            self.logger.info('In home board, time to move toward the portal')
+            return self.move_toward(portals[0])
         else:
+            self.logger.info('In pvp board, time to move toward monsters[0]')
             return self.move_toward(monsters[0])
         
         # if x == 19:
@@ -137,7 +134,7 @@ class Strategy:
     
         game_state.get_monsters_on_board(self.curr_pos.get_board_id)
         
-        # Just move to the nearest portal
+        # Just move to the nearest portal (API doesn't work lul)
         return CharacterDecision(
                     decision_type="MOVE",
                     action_position=self.find_position_to_move(self.curr_pos, self.api.find_closest_portal(self.curr_pos)),
@@ -236,60 +233,12 @@ class Strategy:
         else:
             return None
 
-    def process_board(self, board):
-        grid = board.get_grid()
-        processed_grid = []
-        for row in grid:
-            processed_row = []
-            for tile in row:
-                if tile.get_type() == "IMPASSIBLE":
-                    processed_row.append(-1)
-                else:
-                    processed_row.append(0)
-            processed_grid.append(row)
-        #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
-        return processed_grid
-
     def find_closest(self, characters: list):
         return min(characters, lambda character: self.curr_pos.manhattan_distance(character.position))
 
     def within_range(self, position: Position):
         return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
     
-    def path_find(self, board, start, end):
-        board[start.x, start.y] = 0
-        board[end.x, end.y] = 1
-        while (board[start.x, start.y] == 0):
-            for i in range(len(board)):
-                for j in range(len(board[0])):
-                    if self.checkBounds(board, i + 1, j):
-                        if board[i + 1][j] > board[i][j] + 1:
-                            board[i + 1][j] = board[i][j] + 1
-                    if self.checkBounds(board, i - 1, j):
-                        if board[i - 1][j] > board[i][j] + 1:
-                            board[i - 1][j] = board[i][j] + 1
-                    if self.checkBounds(board, i, j+1):
-                        if board[i][j+1] > board[i][j] + 1:
-                            board[i][j+1] = board[i][j] + 1
-                    if self.checkBounds(board, i, j-1):
-                        if board[i][j-1] > board[i][j] + 1:
-                            board[i][j-1] = board[i][j] + 1
-
-        if self.checkBounds(board, i + 1, j):
-            if board[i + 1][j] > 0:
-                return Position.create(i+1,j, start.get_board_id())
-        if self.checkBounds(board, i - 1, j):
-            if board[i - 1][j] > 0:
-                return Position.create(i-1,j, start.get_board_id())
-        if self.checkBounds(board, i, j + 1):
-            if board[i][j +1] > 0:
-                return Position.create(i,j+1, start.get_board_id())
-        if self.checkBounds(board, i, j - 1):
-            if board[i][j -1] > 0:
-                return Position.create(i,j-1, start.get_board_id())
-        self.logger.info("I'm an idiot, here's the calculated board")
-        self.logger.info(board)
-
     def checkBounds(self, board, i, j):
         if i < 0 or j < 0:
             return False
