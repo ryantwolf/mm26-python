@@ -68,6 +68,14 @@ class Strategy:
             action_position=find_position_to_move(self.my_player, enemy_pos),
             action_index=None
         )
+
+        # Begining of my code
+        decision = CharacterDecision(
+            decision_type="MOVE",
+            action_position=find_position_to_move(self.my_player, self.api.find_closest_portal(self.my_player)),
+            action_index=None
+        )
+
         return decision
 
 
