@@ -4,6 +4,7 @@ from mech.mania.starter_pack.domain.model.characters.character_decision import C
 from mech.mania.starter_pack.domain.model.characters.position import Position
 from mech.mania.starter_pack.domain.model.game_state import GameState
 from mech.mania.starter_pack.domain.api import API
+import math
 
 class Strategy:
     def __init__(self, memory):
@@ -80,8 +81,20 @@ class Strategy:
                                                         pos.get_board_id())),
             action_index = 0
         )
+    
+    def cost_of_monster(self, monster):
+        distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
+        experience_gained = self.calc_exp_by_killing(monster)
+        return distance_cost - experience_gained + 1000*can_kill()
+
+    def calc_exp_by_killing(self, monster):
+        return 10 * monster.get_level() * (self.my_player.get_level() / (self.my_player.get_level() + abs(self.my_player.get_level() - monster.get_level())))
         
-        
+    def can_kill(self, monster):
+        num_turns_to_kill = math.ciel(monster.get_current_health() / self.my_player.get_attack())
+        num_turns_to_die = math.ciel(self.my_player.get_current_health() / monster.get_attack())
+        return num_turns_to_kill > num_turns_to_die
+
     def make_decision(self, player_name: str, game_state: GameState) -> CharacterDecision:
         """
         Parameters:
@@ -94,7 +107,7 @@ class Strategy:
         self.curr_pos = self.my_player.get_position()
 
         self.logger.info("In make_decision")
-        
+
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
         
