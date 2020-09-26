@@ -34,29 +34,54 @@ class Strategy:
                         if self.checkBounds(board, i, j-1):
                             if board[i][j-1] > board[i][j] + 1 or board[i][j-1] == 0:
                                 board[i][j-1] = board[i][j] + 1
-                #self.logger.info(board)
-            iter+=1
-            if iter % 100 == 0:
-                self.logger.info(iter)
+
+        i = start.x
+        j = start.y
+        self.logger.info((i,j))
+
+        dict_move = {}
         if self.checkBounds(board, i + 1, j):
             if board[i + 1][j] > 0:
                 self.logger.info("going right")
-                return Position.create(i+1,j, start.get_board_id())
+                dict_move[board[i+1][j]] = Position.create(i + 1,j, start.get_board_id())
+                #return Position.create(i+1,j, start.get_board_id())
+                #return Position.create(j, i+1, start.get_board_id())
         if self.checkBounds(board, i - 1, j):
             if board[i - 1][j] > 0:
                 self.logger.info("going left")
-                return Position.create(i-1,j, start.get_board_id())
+                dict_move[board[i-1][j]] = Position.create(i - 1,j, start.get_board_id())
+                #return Position.create(i-1,j, start.get_board_id())
+                #return Position.create(j, i - 1, start.get_board_id())
+
         if self.checkBounds(board, i, j + 1):
             if board[i][j +1] > 0:
                 self.logger.info("going down")
-                return Position.create(i,j+1, start.get_board_id())
+                dict_move[board[i][j+1]] = Position.create(i,j+1, start.get_board_id())
+                #return Position.create(i,j+1, start.get_board_id())
+                #return Position.create(j+1, i, start.get_board_id())
+
         if self.checkBounds(board, i, j - 1):
             if board[i][j -1] > 0:
                 self.logger.info("going up")
-                return Position.create(i,j-1, start.get_board_id())
+                dict_move[board[i][j-1]] = Position.create(i,j-1, start.get_board_id())
+                #return Position.create(i,j-1, start.get_board_id())
+                #return Position.create(j-1, i, start.get_board_id())
+        self.logger.info(dict_move)
+        minimum = min(dict_move)
+        self.logger.info(minimum)
+        for i in range(len(board)):
+            row = []
+            for j in range(len(board[i])):
+                row.append(board[i][j])
+            self.logger.info(row)
+        return dict_move[minimum]
+
         self.logger.info("I'm an idiot, here's the calculated board")
-        for i in board:
-            self.logger.info(i)
+        for i in range(len(board)):
+            row = []
+            for j in range(len(board[i])):
+                row.append(board[i][j])
+            self.logger.info(row)
 
     def process_board(self, board):
         grid = board.get_grid()
@@ -106,6 +131,8 @@ class Strategy:
         self.board = game_state.get_pvp_board()
         self.curr_pos = self.my_player.get_position()
 
+        self.board = game_state.get_board(self.curr_pos.get_board_id())
+
         self.logger.info("In make_decision")
 
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
@@ -116,21 +143,25 @@ class Strategy:
         board_id = self.curr_pos.get_board_id()
         
         monsters = game_state.get_monsters_on_board(board_id)
-        self.logger.info("MONSTERS: ")
-        for monster in monsters:
-            self.logger.info(monster.get_name())
-            if monster.get_position().manhattan_distance(self.curr_pos) == 1:
-                return CharacterDecision(
-                    decision_type = "ATTACK",
-                    action_position = monster.get_position(),
-                    action_index = 0
-                )
+        #self.logger.info("MONSTERS: ")
+        #for monster in monsters:
+        #    self.logger.info(monster.get_name())
+        #    if monster.get_position().manhattan_distance(self.curr_pos) == 1:
+        #        return CharacterDecision(
+        #            decision_type = "ATTACK",
+        #            action_position = monster.get_position(),
+        #            action_index = 0
+        #        )
 
         
         portals = self.board.get_portals()
         
         if board_id == 'chairsquestionmark':
             self.logger.info('In home board, time to move toward the portal')
+            try:
+                self.logger.info(self.find_position_to_move(self.curr_pos, self.api.find_closest_portal(self.curr_pos)))
+            except:
+                self.logger.info("uh oh!")
             #self.logger.info(self.find_position_to_move(self.curr_pos, portals[0]))
             return self.move_toward(portals[0])
         else:
