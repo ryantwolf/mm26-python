@@ -93,6 +93,30 @@ class Strategy:
         #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
 
+    def process_board_with_agro(self, board, target_monster, all_monsters):
+        grid = board.get_grid()
+        processed_grid = []
+        for row in grid:
+            processed_row = []
+            for tile in row:
+                y = len(processed_grid)
+                x = len(row)
+                for mon in all_monsters:
+                    if mon != target_monster:
+                        current_position = Position.create(x, y, mon.get_position().get_board_id())
+                        in_range = mon.get_position().manhattan_distance(current_position) <= mon.get_aggro_range()
+                        if in_range:
+                            processed_row.append(-1)
+                            break
+                else:
+                    if tile.get_type() == "IMPASSIBLE":
+                        processed_row.append(-1)
+                    else:
+                        processed_row.append(0)
+            processed_grid.append(processed_row)
+        #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
+        return processed_grid
+
     def move_toward(self, target):
         pos = self.path_find(self.process_board(self.board), self.curr_pos, target)
         return CharacterDecision(
@@ -212,7 +236,8 @@ class Strategy:
         else:
             self.logger.info("Navigating to monster")
             self.memory.set_value("last_action", "MOVE")
-            move_position = self.path_find(self.process_board(self.board), self.curr_pos, best_monster.get_position())
+            processed_board = self.process_board(self.board)
+            move_position = self.path_find(processed_board, self.curr_pos, best_monster.get_position())
             return CharacterDecision(
                 decision_type="MOVE",
                 action_position=move_position,
