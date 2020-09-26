@@ -87,8 +87,8 @@ class Strategy:
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
         
-        # x = self.curr_pos.get_x()
-        # y = self.curr_pos.get_y()
+        x = self.curr_pos.get_x()
+        y = self.curr_pos.get_y()
         board_id = self.curr_pos.get_board_id()
         
         monsters = game_state.get_monsters_on_board(board_id)
@@ -96,6 +96,7 @@ class Strategy:
         for monster in monsters:
             self.logger.info(monster.get_name())
             if monster.get_position().manhattan_distance(self.curr_pos) == 1:
+                self.logger.info('Attacking at (' + str(monster.get_position().get_x()) + ', ' + str(monster.get_position().get_y()) + ')')
                 return CharacterDecision(
                     decision_type = "ATTACK",
                     action_position = monster.get_position(),
@@ -107,7 +108,15 @@ class Strategy:
         
         if board_id == 'chairsquestionmark':
             self.logger.info('In home board, time to move toward the portal')
-            return self.move_toward(portals[0])
+            self.logger.info('Move down')
+            return CharacterDecision(
+                decision_type = "MOVE",
+                action_position = Position(Position.create(x, 
+                                                            y + 1, 
+                                                            board_id)),
+                action_index = 0
+            )
+
         else:
             self.logger.info('In pvp board, time to move toward monsters[0]')
             return self.move_toward(monsters[0])
@@ -117,8 +126,8 @@ class Strategy:
         #     return CharacterDecision(
         #         decision_type = "MOVE",
         #         action_position = Position(Position.create(x, 
-        #                                                    y + 1, 
-        #                                                    board_id)),
+        #                                                     y + 1, 
+        #                                                     board_id)),
         #         action_index = 0
         #     )
         # else:
@@ -126,8 +135,8 @@ class Strategy:
         #     return CharacterDecision(
         #         decision_type = "MOVE",
         #         action_position = Position(Position.create(x + 1, 
-        #                                                    y, 
-        #                                                    board_id)),
+        #                                                     y, 
+        #                                                     board_id)),
         #         action_index = 0
         #     )
 
