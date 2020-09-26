@@ -110,7 +110,11 @@ class Strategy:
     def cost_of_monster(self, monster):
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
         experience_gained = self.calc_exp_by_killing(monster)
-        return distance_cost - experience_gained + 1000*can_kill()
+        return distance_cost - experience_gained
+
+    def cost_of_item(self, item):
+        percent_attack_change = item.get_stats().get_percent_attack_change()
+        return -1*(percent_attack_change)
 
     def calc_exp_by_killing(self, monster):
         return 10 * monster.get_level() * (self.my_player.get_level() / (self.my_player.get_level() + abs(self.my_player.get_level() - monster.get_level())))
@@ -120,6 +124,18 @@ class Strategy:
         num_turns_to_die = math.ciel(self.my_player.get_current_health() / monster.get_attack())
         return num_turns_to_kill > num_turns_to_die
 
+    def find_best_monster(self, living_monsters):
+        return min(living_monsters, lambda monster: self.cost_of_monster(monster))
+
+    def get_item_dict(self):
+        tiles = {}
+        for x in range(len(self.board.get_grid())):
+            for y in range (len(self.board.get_grid()[x])):
+                current_position = Position.create(x, y, self.curr_pos.get_board_id())
+                for item in self.board.get_tile_at(x,y).get_items():
+                    tiles[item] = current_position
+        return tiles
+
     def make_decision(self, player_name: str, game_state: GameState) -> CharacterDecision:
         """
         Parameters:
@@ -128,7 +144,7 @@ class Strategy:
         """
         self.api = API(game_state, player_name)
         self.my_player = game_state.get_all_players()[player_name]
-        self.board = game_state.get_pvp_board()
+        #self.board = game_state.get_pvp_board()
         self.curr_pos = self.my_player.get_position()
 
         self.board = game_state.get_board(self.curr_pos.get_board_id())
@@ -138,11 +154,61 @@ class Strategy:
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
         
-        # x = self.curr_pos.get_x()
-        # y = self.curr_pos.get_y()
         board_id = self.curr_pos.get_board_id()
         
-        monsters = game_state.get_monsters_on_board(board_id)
+
+        # Equip last item picked up
+        last_action, type = self.memory.get_value("last_action", str)
+        if last_action is not None and last_action == "PICKUP":
+            self.memory.set_value("last_action", "EQUIP")
+            return CharacterDecision(
+                decision_type="EQUIP",
+                action_position=None,
+                action_index=self.my_player.get_free_inventory_index()
+            )
+
+        # Pick up item if on current tile
+        tile_items = self.board.get_tile_at(self.curr_pos).items
+        if tile_items is not None or len(tile_items) > 0:
+            self.memory.set_value("last_action", "PICKUP")
+            return CharacterDecision(
+                decision_type="PICKUP",
+                action_position=None,
+                action_index=0
+            )
+
+        # Go to nearest best item
+        items_dict = self.get_item_dict()
+        if items_dict.keys() is not None:
+            nearest_item = min(items_dict.keys(), lambda item: self.cost_of_item(item))
+            move_position = self.path_find(self.board, self.curr_pos, items_dict[nearest_item])
+            return CharacterDecision(
+                decision_type="MOVE",
+                action_position=move_position,
+                action_index=0
+            )
+
+
+        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if monster.is_dead()]
+
+        best_monster = self.find_best_monster(living_monsters)
+
+        if (self.within_range(best_monster.get_position())):
+            self.memory.set_value("last_action", "ATTACK")
+            return CharacterDecision(
+                decision_type="ATTACK",
+                action_position=best_monster.get_position(),
+                action_index=0
+            )
+        else:
+            self.memory.set_value("last_action", "MOVE")
+            move_position = self.path_find(self.board, self.curr_pos, best_monster.get_position())
+            return CharacterDecision(
+                decision_type="MOVE",
+                action_position=move_position,
+                action_index=0
+            )
+
         #self.logger.info("MONSTERS: ")
         #for monster in monsters:
         #    self.logger.info(monster.get_name())
@@ -200,42 +266,9 @@ class Strategy:
         # Move to the nearest monster
         monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
 
-        if len(monster_locations) > 0:
-            monsters_within_range = self.api.find_enemies_in_range_of_attack_by_distance(self.curr_pos)
-            monster_position = self.find_position_to_move(self.curr_pos, monsters[0].get_position())
-
-            if (monster_locations[0] in monsters_within_range):
-                return CharacterDecision(
-                    decision_type="ATTACK",
-                    action_position=monster_position,
-                    action_index=0
-                )
-            else:
-                return CharacterDecision(
-                    decision_type="MOVE",
-                    action_position=monster_position,
-                    action_index=0
-                )
-
         #Other code
 
-        last_action, type = self.memory.get_value("last_action", str)
-        if last_action is not None and last_action == "PICKUP":
-            self.memory.set_value("last_action", "EQUIP")
-            return CharacterDecision(
-                decision_type="EQUIP",
-                action_position=None,
-                action_index=self.my_player.get_free_inventory_index()
-            )
-
-        tile_items = self.board.get_tile_at(self.curr_pos).items
-        if tile_items is not None or len(tile_items) > 0:
-            self.memory.set_value("last_action", "PICKUP")
-            return CharacterDecision(
-                decision_type="PICKUP",
-                action_position=None,
-                action_index=0
-            )
+        
 
         weapon = self.my_player.get_weapon()
         enemies = self.api.find_enemies(self.curr_pos)
