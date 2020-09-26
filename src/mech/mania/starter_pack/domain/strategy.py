@@ -4,7 +4,7 @@ from mech.mania.starter_pack.domain.model.characters.character_decision import C
 from mech.mania.starter_pack.domain.model.characters.position import Position
 from mech.mania.starter_pack.domain.model.game_state import GameState
 from mech.mania.starter_pack.domain.api import API
-
+from mech.mania.starter_pack.domain.model.board import Board
 
 class Strategy:
     def __init__(self, memory):
@@ -25,6 +25,25 @@ class Strategy:
         self.curr_pos = self.my_player.get_position()
 
         self.logger.info("In make_decision")
+
+        monster_position = game_state.get_monsters_on_board
+
+        processed_board = self.process_board(game_state.get_board(self.curr_pos.board_id))
+        monster_location = self.find_closest(game_state.get_monsters_on_board())
+
+        if self.within_range(monster_location):
+            return CharacterDecision(
+                decision_type="ATTACK",
+                action_position=monster_location,
+                action_index=None
+            )
+        else:
+            move_position = self.path_find(processed_board, self.curr_pos, monster_location)
+            return CharacterDecision(
+                decision_type="MOVE",
+                action_position=move_position,
+                action_index=None
+            )
 
         last_action, type = self.memory.get_value("last_action", str)
         if last_action is not None and last_action == "PICKUP":
@@ -89,3 +108,29 @@ class Strategy:
         else:
             pos = path[player.get_speed() - 1]
         return pos
+
+    def move_to(self, start: Position, end: Position):
+        if start.x < end.x:
+            return Position.create(start.x+1, start.y, start.board_id)
+        elif start.x > end.x:
+            return Position.create(start.x-1, start.y, start.board_id)
+        elif start.y < end.y:
+            return Position.create(start.x, start.y+1, start.board_id)
+        elif start.y > end.y:
+            return Position.create(start.x, start.y-1, start.board_id)
+        else:
+            return None
+
+    def process_board(self, board: Board):
+        grid = board.get_grid()
+        processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
+        return processed_grid
+
+    def dist(self, start, end):
+        return abs(self.x - end.x) + abs(self.y-end.y)
+
+    def find_closest(self, characters: list):
+        return min(characters, lambda character: dist(character.position))
+
+    def within_range(self, position: Position):
+        return self.my_player.get_weapon().get_range() >= self.dist(self.curr_pos, position)
