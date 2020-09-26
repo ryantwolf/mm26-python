@@ -13,38 +13,49 @@ class Strategy:
         logging.basicConfig(level = logging.INFO)
     
     def path_find(self, board, start, end):
+        #self.logger.info(board)
         board[start.x][start.y] = 0
         board[end.x][end.y] = 1
+        iter = 0
         while (board[start.x][start.y] == 0):
             for i in range(len(board)):
                 for j in range(len(board[0])):
-                    if self.checkBounds(board, i + 1, j):
-                        if board[i + 1][j] > board[i][j] + 1:
-                            board[i + 1][j] = board[i][j] + 1
-                    if self.checkBounds(board, i - 1, j):
-                        if board[i - 1][j] > board[i][j] + 1:
-                            board[i - 1][j] = board[i][j] + 1
-                    if self.checkBounds(board, i, j+1):
-                        if board[i][j+1] > board[i][j] + 1:
-                            board[i][j+1] = board[i][j] + 1
-                    if self.checkBounds(board, i, j-1):
-                        if board[i][j-1] > board[i][j] + 1:
-                            board[i][j-1] = board[i][j] + 1
-
+                    if (board[i][j] > 0):
+                        if self.checkBounds(board, i + 1, j):
+                            if board[i + 1][j] > board[i][j] + 1 or board[i + 1][j] == 0:
+                                board[i + 1][j] = board[i][j] + 1
+                        if self.checkBounds(board, i - 1, j):
+                            if board[i - 1][j] > board[i][j] + 1 or board[i - 1][j] == 0:
+                                board[i - 1][j] = board[i][j] + 1
+                        if self.checkBounds(board, i, j+1):
+                            if board[i][j+1] > board[i][j] + 1 or board[i][j+1] == 0:
+                                board[i][j+1] = board[i][j] + 1
+                        if self.checkBounds(board, i, j-1):
+                            if board[i][j-1] > board[i][j] + 1 or board[i][j-1] == 0:
+                                board[i][j-1] = board[i][j] + 1
+                #self.logger.info(board)
+            iter+=1
+            if iter % 100 == 0:
+                self.logger.info(iter)
         if self.checkBounds(board, i + 1, j):
             if board[i + 1][j] > 0:
+                self.logger.info("going right")
                 return Position.create(i+1,j, start.get_board_id())
         if self.checkBounds(board, i - 1, j):
             if board[i - 1][j] > 0:
+                self.logger.info("going left")
                 return Position.create(i-1,j, start.get_board_id())
         if self.checkBounds(board, i, j + 1):
             if board[i][j +1] > 0:
+                self.logger.info("going down")
                 return Position.create(i,j+1, start.get_board_id())
         if self.checkBounds(board, i, j - 1):
             if board[i][j -1] > 0:
+                self.logger.info("going up")
                 return Position.create(i,j-1, start.get_board_id())
         self.logger.info("I'm an idiot, here's the calculated board")
-        self.logger.info(board)
+        for i in board:
+            self.logger.info(i)
 
     def process_board(self, board):
         grid = board.get_grid()
@@ -56,7 +67,7 @@ class Strategy:
                     processed_row.append(-1)
                 else:
                     processed_row.append(0)
-            processed_grid.append(row)
+            processed_grid.append(processed_row)
         #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
 
@@ -107,6 +118,7 @@ class Strategy:
         
         if board_id == 'chairsquestionmark':
             self.logger.info('In home board, time to move toward the portal')
+            #self.logger.info(self.find_position_to_move(self.curr_pos, portals[0]))
             return self.move_toward(portals[0])
         else:
             self.logger.info('In pvp board, time to move toward monsters[0]')
@@ -200,6 +212,7 @@ class Strategy:
                 action_index=None
             )
 
+
         self.memory.set_value("last_action", "MOVE")
         decision = CharacterDecision(
             decision_type="MOVE",
@@ -240,9 +253,10 @@ class Strategy:
         return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
     
     def checkBounds(self, board, i, j):
+        #self.logger.info((i,j))
         if i < 0 or j < 0:
             return False
-        if i >= len(board[0]) or j >= len(board):
+        if i >= len(board) or j >= len(board[0]):
             return False
         if board[i][j] == -1:
             return False
