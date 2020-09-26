@@ -2,8 +2,12 @@ import logging
 
 from mech.mania.starter_pack.domain.model.characters.character_decision import CharacterDecision
 from mech.mania.starter_pack.domain.model.characters.position import Position
+from mech.mania.starter_pack.domain.model.characters.player import Player
 from mech.mania.starter_pack.domain.model.game_state import GameState
 from mech.mania.starter_pack.domain.api import API
+import math
+from mech.mania.starter_pack.domain.model.items.wearable import Wearable
+from mech.mania.starter_pack.domain.model.items.weapon import Weapon
 
 class Strategy:
     def __init__(self, memory):
@@ -13,38 +17,68 @@ class Strategy:
         logging.basicConfig(level = logging.INFO)
     
     def path_find(self, board, start, end):
+        #self.logger.info(board)
         board[start.x][start.y] = 0
         board[end.x][end.y] = 1
+        iter = 0
         while (board[start.x][start.y] == 0):
             for i in range(len(board)):
                 for j in range(len(board[0])):
-                    if self.checkBounds(board, i + 1, j):
-                        if board[i + 1][j] > board[i][j] + 1:
-                            board[i + 1][j] = board[i][j] + 1
-                    if self.checkBounds(board, i - 1, j):
-                        if board[i - 1][j] > board[i][j] + 1:
-                            board[i - 1][j] = board[i][j] + 1
-                    if self.checkBounds(board, i, j+1):
-                        if board[i][j+1] > board[i][j] + 1:
-                            board[i][j+1] = board[i][j] + 1
-                    if self.checkBounds(board, i, j-1):
-                        if board[i][j-1] > board[i][j] + 1:
-                            board[i][j-1] = board[i][j] + 1
+                    if (board[i][j] > 0):
+                        if self.checkBounds(board, i + 1, j):
+                            if board[i + 1][j] > board[i][j] + 1 or board[i + 1][j] == 0:
+                                board[i + 1][j] = board[i][j] + 1
+                        if self.checkBounds(board, i - 1, j):
+                            if board[i - 1][j] > board[i][j] + 1 or board[i - 1][j] == 0:
+                                board[i - 1][j] = board[i][j] + 1
+                        if self.checkBounds(board, i, j+1):
+                            if board[i][j+1] > board[i][j] + 1 or board[i][j+1] == 0:
+                                board[i][j+1] = board[i][j] + 1
+                        if self.checkBounds(board, i, j-1):
+                            if board[i][j-1] > board[i][j] + 1 or board[i][j-1] == 0:
+                                board[i][j-1] = board[i][j] + 1
 
+        i = start.x
+        j = start.y
+        self.logger.info((i,j))
+
+        dict_move = {}
         if self.checkBounds(board, i + 1, j):
             if board[i + 1][j] > 0:
-                return Position.create(i+1,j, start.get_board_id())
+                self.logger.info("going right")
+                dict_move[board[i+1][j]] = Position.create(i + 1,j, start.get_board_id())
+                #return Position.create(i+1,j, start.get_board_id())
+                #return Position.create(j, i+1, start.get_board_id())
         if self.checkBounds(board, i - 1, j):
             if board[i - 1][j] > 0:
-                return Position.create(i-1,j, start.get_board_id())
+                self.logger.info("going left")
+                dict_move[board[i-1][j]] = Position.create(i - 1,j, start.get_board_id())
+                #return Position.create(i-1,j, start.get_board_id())
+                #return Position.create(j, i - 1, start.get_board_id())
+
         if self.checkBounds(board, i, j + 1):
             if board[i][j +1] > 0:
-                return Position.create(i,j+1, start.get_board_id())
+                self.logger.info("going down")
+                dict_move[board[i][j+1]] = Position.create(i,j+1, start.get_board_id())
+                #return Position.create(i,j+1, start.get_board_id())
+                #return Position.create(j+1, i, start.get_board_id())
+
         if self.checkBounds(board, i, j - 1):
             if board[i][j -1] > 0:
-                return Position.create(i,j-1, start.get_board_id())
-        self.logger.info("I'm an idiot, here's the calculated board")
-        self.logger.info(board)
+                self.logger.info("going up")
+                dict_move[board[i][j-1]] = Position.create(i,j-1, start.get_board_id())
+                #return Position.create(i,j-1, start.get_board_id())
+                #return Position.create(j-1, i, start.get_board_id())
+        self.logger.info(dict_move)
+        minimum = min(dict_move)
+        self.logger.info(minimum)
+        for j in range(len(board[0])):
+            row = []
+            for i in range(len(board)):
+                row.append("%02d" % board[i][j])
+            self.logger.info(row)
+        return dict_move[minimum]
+
 
     def process_board(self, board):
         grid = board.get_grid()
@@ -56,7 +90,31 @@ class Strategy:
                     processed_row.append(-1)
                 else:
                     processed_row.append(0)
-            processed_grid.append(row)
+            processed_grid.append(processed_row)
+        #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
+        return processed_grid
+
+    def process_board_with_agro(self, board, target_monster, all_monsters):
+        grid = board.get_grid()
+        processed_grid = []
+        for row in grid:
+            processed_row = []
+            for tile in row:
+                y = len(processed_grid)
+                x = len(row)
+                for mon in all_monsters:
+                    if mon != target_monster:
+                        current_position = Position.create(x, y, mon.get_position().get_board_id())
+                        in_range = mon.get_position().manhattan_distance(current_position) <= mon.get_aggro_range()
+                        if in_range:
+                            processed_row.append(-1)
+                            break
+                else:
+                    if tile.get_type() == "IMPASSIBLE":
+                        processed_row.append(-1)
+                    else:
+                        processed_row.append(0)
+            processed_grid.append(processed_row)
         #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
 
@@ -69,6 +127,23 @@ class Strategy:
                                                         pos.get_board_id())),
             action_index = 0
         )
+    
+    def cost_of_monster(self, monster):
+        distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
+        experience_gained = self.calc_exp_by_killing(monster)
+        return distance_cost - experience_gained + 5*monster.get_level()
+
+    def cost_of_item(self, item):
+        self.logger.info(item)
+        if item is Wearable:
+            if item is Weapon:
+                return -1*item.get_attack()
+            percent_attack_change = item.get_stats().get_percent_attack_change()
+            return -1*(percent_attack_change)
+        return 0
+
+    def calc_exp_by_killing(self, monster):
+        return 10 * monster.get_level() * (self.my_player.get_level() / (self.my_player.get_level() + abs(self.my_player.get_level() - monster.get_level())))
         
     def intermediate_positions(self, turning_points):
         positions = []
@@ -88,6 +163,24 @@ class Strategy:
                 return True
         return False
         
+    def can_kill(self, monster):
+        num_turns_to_kill = math.ciel(monster.get_current_health() / self.my_player.get_attack())
+        num_turns_to_die = math.ciel(self.my_player.get_current_health() / monster.get_attack())
+        return num_turns_to_kill > num_turns_to_die
+
+    def find_best_monster(self, living_monsters):
+        return min(living_monsters, key=lambda monster: self.cost_of_monster(monster))
+
+    def get_item_dict(self):
+        tiles = {}
+        self.logger.info(self.board.get_grid())
+        for x in range(len(self.board.get_grid())):
+            for y in range (len(self.board.get_grid()[x])):
+                current_position = Position.create(x, y, self.curr_pos.get_board_id())
+                for item in self.board.get_tile_at(current_position).get_items():
+                    tiles[item] = current_position
+        return tiles
+
     def make_decision(self, player_name: str, game_state: GameState) -> CharacterDecision:
         """
         Parameters:
@@ -99,8 +192,10 @@ class Strategy:
         self.curr_pos = self.my_player.get_position()
         self.board = game_state.get_board(self.curr_pos.get_board_id())
 
+        self.board = game_state.get_board(self.curr_pos.get_board_id())
+
         self.logger.info("In make_decision")
-        
+
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
                 
@@ -212,6 +307,93 @@ class Strategy:
             self.logger.info('Move right')
             return move_right
 
+        
+        board_id = self.curr_pos.get_board_id()
+        
+
+        # Equip last item picked up
+        last_action, type = self.memory.get_value("last_action", str)
+        self.logger.info(f"last_action: '{last_action}'")
+
+        if last_action is not None and last_action == "PICKUP":
+            self.logger.info("Equipping an item")
+            self.memory.set_value("last_action", "EQUIP")
+            return CharacterDecision(
+                decision_type="EQUIP",
+                action_position=None,
+                action_index=0  # self.my_player.get_free_inventory_index()
+            )
+
+        tile_items = self.board.get_tile_at(self.curr_pos).get_items()
+        if tile_items is not None and len(tile_items) > 0:
+            self.logger.info("There are items on my tile, picking up item")
+            self.memory.set_value("last_action", "PICKUP")
+            return CharacterDecision(
+                decision_type="PICKUP",
+                action_position=None,
+                action_index=0
+            )
+
+        # Go to nearest best item
+        items_dict = self.get_item_dict()
+        self.logger.info(items_dict)
+        if items_dict is not None and len(items_dict) > 0:
+            self.logger.info("Going to item")
+            nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
+            self.logger.info("Nearest item: " + nearest_item)
+            move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
+            self.logger.info("Move position for nearest item: " + move_position)
+            return CharacterDecision(
+                decision_type="MOVE",
+                action_position=move_position,
+                action_index=0
+            )
+
+
+        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
+
+        best_monster = self.find_best_monster(living_monsters)
+
+        if (self.within_range(best_monster.get_position())):
+            self.logger.info("Attacking monster")
+            self.memory.set_value("last_action", "ATTACK")
+            return CharacterDecision(
+                decision_type="ATTACK",
+                action_position=best_monster.get_position(),
+                action_index=0
+            )
+        else:
+            self.logger.info("Navigating to monster")
+            self.memory.set_value("last_action", "MOVE")
+            processed_board = self.process_board(self.board)
+            move_position = self.path_find(processed_board, self.curr_pos, best_monster.get_position())
+            return CharacterDecision(
+                decision_type="MOVE",
+                action_position=move_position,
+                action_index=0
+            )
+
+        #self.logger.info("MONSTERS: ")
+        #for monster in monsters:
+        #    self.logger.info(monster.get_name())
+        #    if monster.get_position().manhattan_distance(self.curr_pos) == 1:
+        #        return CharacterDecision(
+        #            decision_type = "ATTACK",
+        #            action_position = monster.get_position(),
+        #            action_index = 0
+        #        )
+
+        
+        portals = self.board.get_portals()
+        
+        if board_id == 'chairsquestionmark':
+            self.logger.info('In home board, time to move toward the portal')
+            try:
+                self.logger.info(self.find_position_to_move(self.curr_pos, self.api.find_closest_portal(self.curr_pos)))
+            except:
+                self.logger.info("uh oh!")
+            #self.logger.info(self.find_position_to_move(self.curr_pos, portals[0]))
+            return self.move_toward(portals[0])
         else:
             self.logger.info('In pvp board, time to move toward monsters[0]')
             return self.move_toward(monsters[0])
@@ -221,8 +403,8 @@ class Strategy:
         #     return CharacterDecision(
         #         decision_type = "MOVE",
         #         action_position = Position(Position.create(x, 
-        #                                                     y + 1, 
-        #                                                     board_id)),
+        #                                                    y + 1, 
+        #                                                    board_id)),
         #         action_index = 0
         #     )
         # else:
@@ -230,8 +412,8 @@ class Strategy:
         #     return CharacterDecision(
         #         decision_type = "MOVE",
         #         action_position = Position(Position.create(x + 1, 
-        #                                                     y, 
-        #                                                     board_id)),
+        #                                                    y, 
+        #                                                    board_id)),
         #         action_index = 0
         #     )
 
@@ -250,46 +432,14 @@ class Strategy:
         # Move to the nearest monster
         monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
 
-        if len(monster_locations) > 0:
-            monsters_within_range = self.api.find_enemies_in_range_of_attack_by_distance(self.curr_pos)
-            monster_position = self.find_position_to_move(self.curr_pos, monsters[0].get_position())
-
-            if (monster_locations[0] in monsters_within_range):
-                return CharacterDecision(
-                    decision_type="ATTACK",
-                    action_position=monster_position,
-                    action_index=0
-                )
-            else:
-                return CharacterDecision(
-                    decision_type="MOVE",
-                    action_position=monster_position,
-                    action_index=0
-                )
-
         #Other code
 
-        last_action, type = self.memory.get_value("last_action", str)
-        if last_action is not None and last_action == "PICKUP":
-            self.memory.set_value("last_action", "EQUIP")
-            return CharacterDecision(
-                decision_type="EQUIP",
-                action_position=None,
-                action_index=self.my_player.get_free_inventory_index()
-            )
-
-        tile_items = self.board.get_tile_at(self.curr_pos).items
-        if tile_items is not None or len(tile_items) > 0:
-            self.memory.set_value("last_action", "PICKUP")
-            return CharacterDecision(
-                decision_type="PICKUP",
-                action_position=None,
-                action_index=0
-            )
+        
 
         weapon = self.my_player.get_weapon()
-        enemies = self.api.find_enemies(self.curr_pos)
-        if enemies is None or len(enemies) > 0:
+        enemies = self.api.find_enemies_by_distance(self.curr_pos)
+        if enemies is None or len(enemies) == 0:
+            self.logger.info("There is no enemies in range, moving to spawn point")
             self.memory.set_value("last_action", "MOVE")
             return CharacterDecision(
                 decision_type="MOVE",
@@ -299,6 +449,7 @@ class Strategy:
 
         enemy_pos = enemies[0].get_position()
         if self.curr_pos.manhattan_distance(enemy_pos) <= weapon.get_range():
+            self.logger.info("There is an enemy within weapon range, attacking")
             self.memory.set_value("last_action", "ATTACK")
             return CharacterDecision(
                 decision_type="ATTACK",
@@ -306,7 +457,9 @@ class Strategy:
                 action_index=None
             )
 
+
         self.memory.set_value("last_action", "MOVE")
+        self.logger.info("Moving towards the nearest enemy")
         decision = CharacterDecision(
             decision_type="MOVE",
             action_position=self.find_position_to_move(self.my_player, enemy_pos),
@@ -317,9 +470,11 @@ class Strategy:
 
 
     # feel free to write as many helper functions as you need!
-    def find_position_to_move(self, player: Position, destination: Position) -> Position:
-        path = self.api.find_path(player, destination)
-        self.logger.info(path)
+    def find_position_to_move(self, player: Player, destination: Position) -> Position:
+        path = self.api.find_path(player.get_position(), destination)
+        # path can be empty if player.get_position() == destination
+        if len(path) == 0:
+            return player.get_position()
         pos = None
         if len(path) < player.get_speed():
             pos = path[-1]
@@ -346,10 +501,29 @@ class Strategy:
         return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
     
     def checkBounds(self, board, i, j):
+        #self.logger.info((i,j))
         if i < 0 or j < 0:
             return False
-        if i >= len(board[0]) or j >= len(board):
+        if i >= len(board) or j >= len(board[0]):
             return False
         if board[i][j] == -1:
             return False
         return True
+
+    def goTo(self, toPosition):
+        board = self.process_board(self.board)
+        nextMove = self.path_find(board, self.curr_pos, toPosition)
+        return CharacterDecision(
+                    decision_type="MOVE",
+                    action_position=nextMove,
+                    action_index=0
+                )
+
+    def goTo(self, toPosition, monsters):
+        board = self.process_board_with_agro(self.board, toPosition, monsters)
+        nextMove = self.path_find(board, self.curr_pos, toPosition)
+        return CharacterDecision(
+            decision_type="MOVE",
+            action_position=nextMove,
+            action_index=0
+        )
