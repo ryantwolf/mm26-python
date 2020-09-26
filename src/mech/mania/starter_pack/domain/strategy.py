@@ -5,6 +5,8 @@ from mech.mania.starter_pack.domain.model.characters.position import Position
 from mech.mania.starter_pack.domain.model.game_state import GameState
 from mech.mania.starter_pack.domain.api import API
 import math
+from mech.mania.starter_pack.domain.model.items.wearable import Wearable
+from mech.mania.starter_pack.domain.model.items.weapon import Weapon
 
 class Strategy:
     def __init__(self, memory):
@@ -104,11 +106,16 @@ class Strategy:
     def cost_of_monster(self, monster):
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
         experience_gained = self.calc_exp_by_killing(monster)
-        return distance_cost - experience_gained
+        return distance_cost - experience_gained + 5*monster.get_level()
 
     def cost_of_item(self, item):
-        percent_attack_change = item.get_stats().get_percent_attack_change()
-        return -1*(percent_attack_change)
+        self.logger.info(item)
+        if item is Wearable:
+            if item is Weapon:
+                return -1*item.get_attack()
+            percent_attack_change = item.get_stats().get_percent_attack_change()
+            return -1*(percent_attack_change)
+        return 0
 
     def calc_exp_by_killing(self, monster):
         return 10 * monster.get_level() * (self.my_player.get_level() / (self.my_player.get_level() + abs(self.my_player.get_level() - monster.get_level())))
@@ -119,14 +126,15 @@ class Strategy:
         return num_turns_to_kill > num_turns_to_die
 
     def find_best_monster(self, living_monsters):
-        return min(living_monsters, lambda monster: self.cost_of_monster(monster))
+        return min(living_monsters, key=lambda monster: self.cost_of_monster(monster))
 
     def get_item_dict(self):
         tiles = {}
+        self.logger.info(self.board.get_grid())
         for x in range(len(self.board.get_grid())):
             for y in range (len(self.board.get_grid()[x])):
                 current_position = Position.create(x, y, self.curr_pos.get_board_id())
-                for item in self.board.get_tile_at(x,y).get_items():
+                for item in self.board.get_tile_at(current_position).get_items():
                     tiles[item] = current_position
         return tiles
 
@@ -154,6 +162,7 @@ class Strategy:
         # Equip last item picked up
         last_action, type = self.memory.get_value("last_action", str)
         if last_action is not None and last_action == "PICKUP":
+            self.logger.info("Equipping an item")
             self.memory.set_value("last_action", "EQUIP")
             return CharacterDecision(
                 decision_type="EQUIP",
@@ -163,7 +172,8 @@ class Strategy:
 
         # Pick up item if on current tile
         tile_items = self.board.get_tile_at(self.curr_pos).items
-        if tile_items is not None or len(tile_items) > 0:
+        if tile_items is not None and len(tile_items) > 0:
+            self.logger.info("Picking up item on current tile")
             self.memory.set_value("last_action", "PICKUP")
             return CharacterDecision(
                 decision_type="PICKUP",
@@ -173,9 +183,13 @@ class Strategy:
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        if items_dict.keys() is not None:
-            nearest_item = min(items_dict.keys(), lambda item: self.cost_of_item(item))
-            move_position = self.path_find(self.board, self.curr_pos, items_dict[nearest_item])
+        self.logger.info(items_dict)
+        if items_dict is not None and len(items_dict) > 0:
+            self.logger.info("Going to item")
+            nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
+            self.logger.info("Nearest item: " + nearest_item)
+            move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
+            self.logger.info("Move position for nearest item: " + move_position)
             return CharacterDecision(
                 decision_type="MOVE",
                 action_position=move_position,
@@ -183,11 +197,12 @@ class Strategy:
             )
 
 
-        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if monster.is_dead()]
+        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
 
         best_monster = self.find_best_monster(living_monsters)
 
         if (self.within_range(best_monster.get_position())):
+            self.logger.info("Attacking monster")
             self.memory.set_value("last_action", "ATTACK")
             return CharacterDecision(
                 decision_type="ATTACK",
@@ -195,8 +210,9 @@ class Strategy:
                 action_index=0
             )
         else:
+            self.logger.info("Navigating to monster")
             self.memory.set_value("last_action", "MOVE")
-            move_position = self.path_find(self.board, self.curr_pos, best_monster.get_position())
+            move_position = self.path_find(self.process_board(self.board), self.curr_pos, best_monster.get_position())
             return CharacterDecision(
                 decision_type="MOVE",
                 action_position=move_position,
