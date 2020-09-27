@@ -69,7 +69,7 @@ class Strategy:
 
         # Getting items on current times and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
-        if tile_items is not None and len(tile_items) > 0:
+        if tile_items is not None and len(tile_items) > 0 and len(self.my_player.get_inventory()) < 16:
             self.logger.info("\nThere are items on my tile, picking up item")
             self.logger.info("Items on this tile: " + str(tile_items))
             self.memory.set_value("last_action", "PICKUP")
