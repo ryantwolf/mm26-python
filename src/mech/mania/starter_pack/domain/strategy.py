@@ -15,6 +15,66 @@ class Strategy:
         self.logger = logging.getLogger('strategy')
         self.logger.setLevel(logging.DEBUG)
         logging.basicConfig(level = logging.INFO)
+
+    def path_find_with_speed(self, board, start, end, speed):
+        board[start.x][start.y] = 0
+        board[end.x][end.y] = 1
+        iter = 0
+        while board[start.x][start.y] == 0 and iter < len(board)*len(board[0]):
+            for i in range(len(board)):
+                for j in range(len(board[0])):
+                    if board[i][j] > 0:
+                        if self.checkBounds(board, i + 1, j):
+                            if board[i + 1][j] > board[i][j] + 1 or board[i + 1][j] == 0:
+                                board[i + 1][j] = board[i][j] + 1
+                        if self.checkBounds(board, i - 1, j):
+                            if board[i - 1][j] > board[i][j] + 1 or board[i - 1][j] == 0:
+                                board[i - 1][j] = board[i][j] + 1
+                        if self.checkBounds(board, i, j + 1):
+                            if board[i][j + 1] > board[i][j] + 1 or board[i][j + 1] == 0:
+                                board[i][j + 1] = board[i][j] + 1
+                        if self.checkBounds(board, i, j - 1):
+                            if board[i][j - 1] > board[i][j] + 1 or board[i][j - 1] == 0:
+                                board[i][j - 1] = board[i][j] + 1
+            iter += 1
+
+        i = start.x
+        j = start.y
+        self.logger.info((i, j))
+        pos = None
+        for m in range(speed):
+            dict_move = {}
+            if self.checkBounds(board, i + 1, j):
+                if board[i + 1][j] > 0:
+                    self.logger.info("going right")
+                    dict_move[board[i + 1][j]] = Position.create(i + 1, j, start.get_board_id())
+
+            if self.checkBounds(board, i - 1, j):
+                if board[i - 1][j] > 0:
+                    self.logger.info("going left")
+                    dict_move[board[i - 1][j]] = Position.create(i - 1, j, start.get_board_id())
+
+            if self.checkBounds(board, i, j + 1):
+                if board[i][j + 1] > 0:
+                    self.logger.info("going down")
+                    dict_move[board[i][j + 1]] = Position.create(i, j + 1, start.get_board_id())
+
+            if self.checkBounds(board, i, j - 1):
+                if board[i][j - 1] > 0:
+                    self.logger.info("going up")
+                    dict_move[board[i][j - 1]] = Position.create(i, j - 1, start.get_board_id())
+
+            minimum = min(dict_move)
+            pos = dict_move[minimum]
+            i = pos.x
+            j = pos.y
+
+        for j in range(len(board[0])):
+            row = []
+            for i in range(len(board)):
+                row.append("%02d" % board[i][j])
+            self.logger.info(row)
+        return pos
     
     def path_find(self, board, start, end):
         #self.logger.info(board)
@@ -340,7 +400,7 @@ class Strategy:
         if items_dict is not None and len(items_dict) > 0:
             self.logger.info("Going to item")
             nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
-            self.logger.info("Nearest item: " + nearest_item)
+            self.logger.info("Nearest item: " + str(nearest_item))
             move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
             self.logger.info("Move position for nearest item: " + move_position)
             return CharacterDecision(
