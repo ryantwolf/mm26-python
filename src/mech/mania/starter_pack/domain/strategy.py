@@ -63,6 +63,7 @@ class Strategy:
         
         for i in range(len(inventory)):
             if self.is_better_item(inventory[i], 5, 5, 5, 1):
+                self.logger.info(f"Equipping an item: {inventory[i]}")
                 return self.equip(i)
             
         # Equip last item picked up
