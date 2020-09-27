@@ -16,6 +16,103 @@ class Strategy:
         self.logger.setLevel(logging.DEBUG)
         logging.basicConfig(level = logging.INFO)
 
+    def make_decision(self, player_name: str, game_state: GameState) -> CharacterDecision:
+        """
+        Parameters:
+        player_name (string): The name of your player
+        game_state (GameState): The current game state
+        """
+        self.api = API(game_state, player_name)
+        self.my_player = game_state.get_all_players()[player_name]
+        self.curr_pos = self.my_player.get_position()
+        self.board = game_state.get_board(self.curr_pos.get_board_id())
+        board_id = self.curr_pos.get_board_id()
+
+        self.logger.info("\nSTARTING NEW TURN\n")
+        self.logger.info("Current Position: ")
+        self.logger.info('X: ' + str(self.curr_pos.get_x()))
+        self.logger.info('Y: ' + str(self.curr_pos.get_y()))
+        self.logger.info(f'\nInventory: {str(self.my_player.get_inventory())}')
+
+        # Equip last item picked up
+        last_action, type = self.memory.get_value("last_action", str)
+        self.logger.info(f"Last_action: '{last_action}'")
+
+        if last_action is not None and last_action == "PICKUP":
+            self.logger.info("Equipping an item")
+            self.memory.set_value("last_action", "EQUIP")
+            return CharacterDecision(
+                decision_type="EQUIP",
+                action_position=None,
+                action_index=0  # self.my_player.get_free_inventory_index()
+            )
+
+        if last_action is None:
+            self.logger.info("The Last action was None")
+
+        tile_items = self.board.get_tile_at(self.curr_pos).get_items()
+        if tile_items is not None and len(tile_items) > 0:
+            self.logger.info("There are items on my tile, picking up item")
+            self.memory.set_value("last_action", "PICKUP")
+            return CharacterDecision(
+                decision_type="PICKUP",
+                action_position=None,
+                action_index=0
+            )
+
+        # Go to nearest best item
+        items_dict = self.get_item_dict()
+        self.logger.info(items_dict)
+        if items_dict is not None and len(items_dict) > 0:
+            self.logger.info("Going to item")
+            nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
+            move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
+            # self.logger.info("Move position for nearest item: " + move_position)
+            return CharacterDecision(
+                decision_type="MOVE",
+                action_position=move_position,
+                action_index=0
+            )
+
+        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
+
+        best_monster = self.find_best_monster(living_monsters)
+
+        if (self.within_range(best_monster.get_position())):
+            self.logger.info("Attacking monster")
+            self.memory.set_value("last_action", "ATTACK")
+            return CharacterDecision(
+                decision_type="ATTACK",
+                action_position=best_monster.get_position(),
+                action_index=0
+            )
+        else:
+            self.logger.info("Navigating to monster")
+            self.memory.set_value("last_action", "MOVE")
+            processed_board = self.process_board(self.board)
+            move_position = self.path_find(processed_board, self.curr_pos, best_monster.get_position())
+            return CharacterDecision(
+                decision_type="MOVE",
+                action_position=move_position,
+                action_index=0
+            )
+
+        portals = self.board.get_portals()
+
+        game_state.get_monsters_on_board(self.curr_pos.get_board_id)
+
+        # Just move to the nearest portal (API doesn't work lul)
+        return CharacterDecision(
+            decision_type="MOVE",
+            action_position=Position(Position.create(x - 1,
+                                                     y,
+                                                     board_id)),
+            action_index=0
+        )
+
+        # Move to the nearest monster
+        monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
+
     # Returns the the next step to take on the optimal path to the endpoint form start point with given speed
     def path_find_with_speed(self, board, start, end, speed):
         self.logger.info("Finding Optimal Path")
@@ -167,103 +264,6 @@ class Strategy:
                 for item in self.board.get_tile_at(current_position).get_items():
                     tiles[item] = current_position
         return tiles
-
-    def make_decision(self, player_name: str, game_state: GameState) -> CharacterDecision:
-        """
-        Parameters:
-        player_name (string): The name of your player
-        game_state (GameState): The current game state
-        """
-        self.api = API(game_state, player_name)
-        self.my_player = game_state.get_all_players()[player_name]
-        self.curr_pos = self.my_player.get_position()
-        self.board = game_state.get_board(self.curr_pos.get_board_id())
-
-        self.logger.info("\nSTARTING NEW TURN\n")
-        self.logger.info("Current Position: ")
-        self.logger.info('X: ' + str(self.curr_pos.get_x()))
-        self.logger.info('Y: ' + str(self.curr_pos.get_y()))
-        self.logger.info(f'\nInventory: {str(self.my_player.get_inventory())}')
-
-        board_id = self.curr_pos.get_board_id()
-
-        # Equip last item picked up
-        last_action, type = self.memory.get_value("last_action", str)
-        self.logger.info(f"last_action: '{last_action}'")
-
-        if last_action is not None and last_action == "PICKUP":
-            self.logger.info("Equipping an item")
-            self.memory.set_value("last_action", "EQUIP")
-            return CharacterDecision(
-                decision_type="EQUIP",
-                action_position=None,
-                action_index=0  # self.my_player.get_free_inventory_index()
-            )
-
-        tile_items = self.board.get_tile_at(self.curr_pos).get_items()
-        if tile_items is not None and len(tile_items) > 0:
-            self.logger.info("There are items on my tile, picking up item")
-            self.memory.set_value("last_action", "PICKUP")
-            return CharacterDecision(
-                decision_type="PICKUP",
-                action_position=None,
-                action_index=0
-            )
-
-        # Go to nearest best item
-        items_dict = self.get_item_dict()
-        self.logger.info(items_dict)
-        if items_dict is not None and len(items_dict) > 0:
-            self.logger.info("Going to item")
-            nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
-            move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
-            #self.logger.info("Move position for nearest item: " + move_position)
-            return CharacterDecision(
-                decision_type="MOVE",
-                action_position=move_position,
-                action_index=0
-            )
-
-
-        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
-
-        best_monster = self.find_best_monster(living_monsters)
-
-        if (self.within_range(best_monster.get_position())):
-            self.logger.info("Attacking monster")
-            self.memory.set_value("last_action", "ATTACK")
-            return CharacterDecision(
-                decision_type="ATTACK",
-                action_position=best_monster.get_position(),
-                action_index=0
-            )
-        else:
-            self.logger.info("Navigating to monster")
-            self.memory.set_value("last_action", "MOVE")
-            processed_board = self.process_board(self.board)
-            move_position = self.path_find(processed_board, self.curr_pos, best_monster.get_position())
-            return CharacterDecision(
-                decision_type="MOVE",
-                action_position=move_position,
-                action_index=0
-            )
-        
-        portals = self.board.get_portals()
-
-    
-        game_state.get_monsters_on_board(self.curr_pos.get_board_id)
-        
-        # Just move to the nearest portal (API doesn't work lul)
-        return CharacterDecision(
-            decision_type = "MOVE",
-            action_position = Position(Position.create(x - 1, 
-                                                        y, 
-                                                        board_id)),
-            action_index = 0
-        )
-
-        # Move to the nearest monster
-        monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
 
     # feel free to write as many helper functions as you need!
     def find_position_to_move(self, player: Player, destination: Position) -> Position:
