@@ -125,9 +125,6 @@ class Strategy:
         item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change
 
         if isinstance(item, Weapon):
-            if self.my_player.get_weapon() == None:
-                return True
-
             player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change()
             player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change()
             player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change()
@@ -139,9 +136,6 @@ class Strategy:
                 return True
 
         if isinstance(item, Shoes):
-            if self.my_player.get_shoes() == None:
-                return True
-
             player_flat_attack_change = self.my_player.get_shoes().get_stats().get_flat_attack_change()
             player_flat_defense_change = self.my_player.get_shoes().get_stats().get_flat_defense_change()
             player_flat_speed_change = self.my_player.get_shoes().get_stats().get_flat_speed_change()
@@ -153,9 +147,6 @@ class Strategy:
                 return True
 
         if isinstance(item, Hat):
-            if self.my_player.get_hat() == None:
-                return True
-
             player_flat_attack_change = self.my_player.get_hat().get_stats().get_flat_attack_change()
             player_flat_defense_change = self.my_player.get_hat().get_stats().get_flat_defense_change()
             player_flat_speed_change = self.my_player.get_hat().get_stats().get_flat_speed_change()
@@ -167,9 +158,6 @@ class Strategy:
                 return True
 
         if isinstance(item, Clothes):
-            if self.my_player.get_clothes() == None:
-                return True
-
             player_flat_attack_change = self.my_player.get_hat().get_stats().get_flat_attack_change()
             player_flat_defense_change = self.my_player.get_hat().get_stats().get_flat_defense_change()
             player_flat_speed_change = self.my_player.get_hat().get_stats().get_flat_speed_change()
@@ -181,9 +169,6 @@ class Strategy:
                 return True
 
         if isinstance(item, Accessory):
-            if self.my_player.get_accessory() == None:
-                return True
-
             player_flat_attack_change = self.my_player.get_accessory().get_stats().get_flat_attack_change()
             player_flat_defense_change = self.my_player.get_accessory().get_stats().get_flat_defense_change()
             player_flat_speed_change = self.my_player.get_accessory().get_stats().get_flat_speed_change()
