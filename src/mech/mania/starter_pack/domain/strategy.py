@@ -51,6 +51,8 @@ class Strategy:
         self.logger.info("Current attack: " + str(self.my_player.get_attack()))
         self.logger.info("Current experience: " + str(self.my_player.get_experience()))
         self.logger.info("Current level: " + str(self.my_player.get_level()) + "\n")
+        self.logger.info("Weapon damage: " + str(self.my_player.get_weapon().get_attack()))
+        self.logger.info("Attack: " + str(self.my_player.get_attack()))
 
         # Attack if monster is in range
         if (self.within_range(best_monster.get_position())):
@@ -63,16 +65,19 @@ class Strategy:
             )
 
         # iterate through leaderboard to see if there is a better item to equip
-        if len(inventory) > 0:
-            best_item = None
-            best_idx = None
-            for i in range(len(inventory)):
-                if self.is_better_item(inventory[i], 5, 5, 5, 1):
-                    if best_item is None or self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1):
-                        best_item = inventory[i]
-                        best_idx = i
-            if best_item is not None:
-                return self.equip(best_idx)
+        for i in range(len(inventory)):
+            if self.is_better_item(inventory[i], 5, 5, 5, 1, 10):
+                return self.equip(i)
+        # if len(inventory) > 0:
+        #     best_item = self.my_player.get_inventory()[0]
+        #     best_idx = 0
+        #     for i in range(len(inventory)):
+        #         if self.is_better_item(inventory[i], 5, 5, 5, 1):
+        #             if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1):
+        #                 best_item = inventory[i]
+        #                 best_idx = i
+        #     if best_item is not None:
+        #         return self.equip(best_idx)
 
         # Equip last item picked up
         #last_action, type = self.memory.get_value("last_action", str)
@@ -91,7 +96,7 @@ class Strategy:
 
         # Getting items on current times and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
-        good_tile_items = [item for item in tile_items if self.is_better_item(item, 5, 5, 5, 1)]
+        good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(tile_items[i], 5, 5, 5, 1, 10)]
 
         if good_tile_items is not None and len(good_tile_items) > 0 and len(self.my_player.get_inventory()) < 16:
             self.logger.info("\nThere are items on my tile, picking up item")
@@ -100,25 +105,36 @@ class Strategy:
             return CharacterDecision(
                 decision_type="PICKUP",
                 action_position=None,
-                action_index=0
+                action_index=good_tile_items[0]
             )
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key, 5, 5, 5, 1)]
+        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key, 5, 5, 5, 1, 10)]
 
         self.logger.info("Good items on board " + str(good_items_dict))
-        if good_items_dict is not None and len(good_items_dict) > 0 and len(self.my_player.get_inventory()) < 16:
-            self.logger.info("Going to item")
-            nearest_item = min(good_items_dict, key=lambda item: self.cost_of_item(item))
-            move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
-            return CharacterDecision(
-                decision_type="MOVE",
-                action_position=move_position,
-                action_index=0
-            )
+        if good_items_dict is not None and len(good_items_dict) > 0:
+            if len(self.my_player.get_inventory()) < 16:
+                self.logger.info("Going to item")
+                nearest_item = min(good_items_dict, key=lambda item: self.cost_of_item(item))
+                move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
+                return CharacterDecision(
+                    decision_type="MOVE",
+                    action_position=move_position,
+                    action_index=0
+                )
+            else:
+                self.logger.info("Dropping item")
+                return CharacterDecision(
+                    decision_type="DROP",
+                    action_position=None,
+                    action_index=0
+                )
 
         # Moving to best monster, no agro considered
+        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
+        best_monster = self.find_best_monster(living_monsters)
+
         self.logger.info("Navigating to monster")
         self.memory.set_value("last_action", "MOVE")
         processed_board = self.process_board(self.board)
@@ -129,10 +145,10 @@ class Strategy:
             action_index=0
         )
 
-    def is_better_item(self, item1, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight):
+    def is_better_item(self, item1, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight, weapon_attack_weight):
 
         if isinstance(item1, Consumable):
-            return True
+            return False
 
         item_flat_attack_change = item1.get_stats().get_flat_attack_change() * flat_attack_weight
         item_flat_defense_change = item1.get_stats().get_flat_defense_change() * flat_defense_weight
@@ -142,12 +158,15 @@ class Strategy:
         item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change
 
         if isinstance(item1, Weapon):
+            item_sum_stats += item1.get_attack()*weapon_attack_weight
+
             player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change() * flat_speed_weight
             player_flat_health_change = self.my_player.get_weapon().get_stats().get_flat_health_change() * flat_health_weight
+            player_weapon_attack = self.my_player.get_weapon().get_attack()*weapon_attack_weight
 
-            current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
+            current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change+player_weapon_attack
 
             if item_sum_stats > current_player_weapon_sum_stats:
                 return True
@@ -340,7 +359,7 @@ class Strategy:
         eff_damage = max((.2 * monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01),
                          (monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01) - self.my_player.get_defense())
         die_rounds = self.my_player.get_current_health() / eff_damage
-        return distance_cost - experience_gained_per_hp * 12 + kill_rounds * .25 - die_rounds * .25
+        return distance_cost - experience_gained_per_hp * 20 + kill_rounds * .25 - die_rounds * .25
         
     def cost_of_item(self, item):
         if item is Wearable:
@@ -427,14 +446,14 @@ class Strategy:
                     action_index=0
                 )
 
-    def goTo(self, toPosition, monsters):
-        board = self.process_board_with_agro(self.board, toPosition, monsters)
-        nextMove = self.path_find(board, self.curr_pos, toPosition)
-        return CharacterDecision(
-            decision_type="MOVE",
-            action_position=nextMove,
-            action_index=0
-        )
+    # def goTo(self, toPosition, monsters):
+    #     board = self.process_board_with_agro(self.board, toPosition, monsters)
+    #     nextMove = self.path_find(board, self.curr_pos, toPosition)
+    #     return CharacterDecision(
+    #         decision_type="MOVE",
+    #         action_position=nextMove,
+    #         action_index=0
+    #     )
 
     # Prints a 2D grade of 2-digit numbers
     def print_2D_grid(self, grid):
