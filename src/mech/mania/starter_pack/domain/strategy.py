@@ -378,11 +378,6 @@ class Strategy:
             if monster.get_position().get_x() == x and monster.get_position().get_y() == y:
                 return True
         return False
-        
-    def can_kill(self, monster):
-        num_turns_to_kill = math.ciel(monster.get_current_health() / self.my_player.get_attack())
-        num_turns_to_die = math.ciel(self.my_player.get_current_health() / monster.get_attack())
-        return num_turns_to_kill > num_turns_to_die
 
     def find_best_monster(self, living_monsters):
         return min(living_monsters, key=lambda monster: self.cost_of_monster(monster))
