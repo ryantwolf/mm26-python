@@ -28,11 +28,45 @@ class Strategy:
         self.board = game_state.get_board(self.curr_pos.get_board_id())
         board_id = self.curr_pos.get_board_id()
 
-        self.logger.info("\nSTARTING NEW TURN\n")
+        self.logger.info("\n\nSTARTING NEW TURN\n")
         self.logger.info("Current Position: ")
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
         self.logger.info(f'\nInventory: {str(self.my_player.get_inventory())}')
+
+        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
+        best_monster = self.find_best_monster(living_monsters)
+
+        # Attack if monster is in range
+        if (self.within_range(best_monster.get_position())):
+            self.logger.info("Attacking monster")
+            self.memory.set_value("last_action", "ATTACK")
+            return CharacterDecision(
+                decision_type="ATTACK",
+                action_position=best_monster.get_position(),
+                action_index=0
+            )
+
+        inventory = self.my_player.get_inventory()
+        for i in range(len(inventory)):
+            item = inventory[i]
+            if isinstance(item, Weapon):
+                if self.my_player.get_weapon() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_weapon().get_flat_attack_change():
+                    return self.equip(i)
+            if isinstance(item, Shoes):
+                if self.my_player.get_shoes() == None or item.get_stats().get_flat_defense_change() > self.my_player.get_shoes().get_flat_defense_change():
+                    return self.equip(i)
+            if isinstance(item, Hat):
+                if self.my_player.get_hat() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_hat().get_flat_attack_change():
+                    return self.equip(i)
+            if isinstance(item, Clothes):
+                if self.my_player.get_clothes() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_clothes().get_flat_attack_change():
+                    return self.equip(i)
+            if isinstance(item, Accessory):
+                if self.my_player.get_accessory() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_accessory().get_flat_attack_change():
+                    return self.equip(i)
+            if isinstance(item, Consumable):
+                return self.equip(i)
 
         # Equip last item picked up
         last_action, type = self.memory.get_value("last_action", str)
@@ -53,7 +87,7 @@ class Strategy:
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
         if tile_items is not None and len(tile_items) > 0:
             self.logger.info("\nThere are items on my tile, picking up item")
-            self.logger.info(str(tile_items))
+            self.logger.info("Items on this tile: " + str(tile_items))
             self.memory.set_value("last_action", "PICKUP")
             return CharacterDecision(
                 decision_type="PICKUP",
@@ -63,7 +97,7 @@ class Strategy:
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        self.logger.info(items_dict)
+        self.logger.info("Items on board " + str(items_dict))
         if items_dict is not None and len(items_dict) > 0:
             self.logger.info("Going to item")
             nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
@@ -74,29 +108,16 @@ class Strategy:
                 action_index=0
             )
 
-        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
-        best_monster = self.find_best_monster(living_monsters)
-
-        # Attack if monster is in range
-        if (self.within_range(best_monster.get_position())):
-            self.logger.info("Attacking monster")
-            self.memory.set_value("last_action", "ATTACK")
-            return CharacterDecision(
-                decision_type="ATTACK",
-                action_position=best_monster.get_position(),
-                action_index=0
-            )
         # Moving to best monster, no agro considered
-        else:
-            self.logger.info("Navigating to monster")
-            self.memory.set_value("last_action", "MOVE")
-            processed_board = self.process_board(self.board)
-            move_position = self.path_find(processed_board, self.curr_pos, best_monster.get_position())
-            return CharacterDecision(
-                decision_type="MOVE",
-                action_position=move_position,
-                action_index=0
-            )
+        self.logger.info("Navigating to monster")
+        self.memory.set_value("last_action", "MOVE")
+        processed_board = self.process_board(self.board)
+        move_position = self.path_find(processed_board, self.curr_pos, best_monster.get_position())
+        return CharacterDecision(
+            decision_type="MOVE",
+            action_position=move_position,
+            action_index=0
+        )
 
     # Returns the the next step to take on the optimal path to the endpoint form start point with given speed
     def path_find_with_speed(self, board, start, end, speed):
@@ -315,3 +336,10 @@ class Strategy:
             for i in range(len(grid)):
                 row.append("%02d" % grid[i][j])
             self.logger.info(row)
+
+    def equip(self, index):
+        return CharacterDecision(
+            decision_type = "EQUIP",
+            action_position = None,
+            action_index = index
+        )
