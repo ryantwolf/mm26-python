@@ -94,10 +94,12 @@ class Strategy:
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        self.logger.info("Items on board " + str(items_dict))
-        if items_dict is not None and len(items_dict) > 0 and len(self.my_player.get_inventory()) < 16:
+        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key)]
+
+        self.logger.info("Good items on board " + str(good_items_dict))
+        if good_items_dict is not None and len(good_items_dict) > 0 and len(self.my_player.get_inventory()) < 16:
             self.logger.info("Going to item")
-            nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
+            nearest_item = min(good_items_dict, key=lambda item: self.cost_of_item(item))
             move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
             return CharacterDecision(
                 decision_type="MOVE",
@@ -117,6 +119,11 @@ class Strategy:
         )
 
     def is_better_item(self, item):
+
+        if isinstance(item, Consumable):
+            return True
+
+        
         item_flat_attack_change = item.get_stats().get_flat_attack_change()
         item_flat_defense_change = item.get_stats().get_flat_defense_change()
         item_flat_speed_change = item.get_stats().get_flat_speed_change()
@@ -178,9 +185,6 @@ class Strategy:
 
             if item_sum_stats > current_player_accessory_sum_stats:
                 return True
-
-        if isinstance(item, Consumable):
-            return True
 
         return False
 
