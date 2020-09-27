@@ -8,6 +8,11 @@ from mech.mania.starter_pack.domain.api import API
 import math
 from mech.mania.starter_pack.domain.model.items.wearable import Wearable
 from mech.mania.starter_pack.domain.model.items.weapon import Weapon
+from mech.mania.starter_pack.domain.model.items.consumable import Consumable
+from mech.mania.starter_pack.domain.model.items.accessory import Accessory
+from mech.mania.starter_pack.domain.model.items.clothes import Clothes
+from mech.mania.starter_pack.domain.model.items.hat import Hat
+from mech.mania.starter_pack.domain.model.items.shoes import Shoes
 
 class Strategy:
     def __init__(self, memory):
@@ -48,6 +53,14 @@ class Strategy:
             )
 
         inventory = self.my_player.get_inventory()
+
+        self.logger.info("MaxHP : " + str(self.my_player.get_max_health()))
+        self.logger.info("Current defense: " + str(self.my_player.get_defense()))
+        self.logger.info("Current speed: " + str(self.my_player.get_speed()))
+        self.logger.info("Current attack: " + str(self.my_player.get_attack()))
+        self.logger.info("Current experience: " + str(self.my_player.get_experience()))
+        self.logger.info("Current level: " + str(self.my_player.get_level()))
+        
         for i in range(len(inventory)):
             if self.is_better_item(inventory[i]):
                 return self.equip(i)
@@ -105,19 +118,19 @@ class Strategy:
 
     def is_better_item(self, item):
         if isinstance(item, Weapon):
-            if self.my_player.get_weapon() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_weapon().get_flat_attack_change():
+            if self.my_player.get_weapon() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_weapon().get_stats().get_flat_attack_change():
                 return True
         if isinstance(item, Shoes):
-            if self.my_player.get_shoes() == None or item.get_stats().get_flat_defense_change() > self.my_player.get_shoes().get_flat_defense_change():
+            if self.my_player.get_shoes() == None or item.get_stats().get_flat_defense_change() > self.my_player.get_shoes().get_stats().get_flat_defense_change():
                 return True
         if isinstance(item, Hat):
-            if self.my_player.get_hat() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_hat().get_flat_attack_change():
+            if self.my_player.get_hat() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_hat().get_stats().get_flat_attack_change():
                 return True
         if isinstance(item, Clothes):
-            if self.my_player.get_clothes() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_clothes().get_flat_attack_change():
+            if self.my_player.get_clothes() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_clothes().get_stats().get_flat_attack_change():
                 return True
         if isinstance(item, Accessory):
-            if self.my_player.get_accessory() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_accessory().get_flat_attack_change():
+            if self.my_player.get_accessory() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_accessory().get_stats().get_flat_attack_change():
                 return True
         if isinstance(item, Consumable):
             return True
