@@ -46,13 +46,14 @@ class Strategy:
                 action_position=None,
                 action_index=0  # self.my_player.get_free_inventory_index()
             )
-
         if last_action is None:
             self.logger.info("The Last action was None")
 
+        # Getting items on current times and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
         if tile_items is not None and len(tile_items) > 0:
-            self.logger.info("There are items on my tile, picking up item")
+            self.logger.info("\nThere are items on my tile, picking up item")
+            self.logger.info(str(tile_items))
             self.memory.set_value("last_action", "PICKUP")
             return CharacterDecision(
                 decision_type="PICKUP",
@@ -67,7 +68,6 @@ class Strategy:
             self.logger.info("Going to item")
             nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
             move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
-            # self.logger.info("Move position for nearest item: " + move_position)
             return CharacterDecision(
                 decision_type="MOVE",
                 action_position=move_position,
@@ -75,9 +75,9 @@ class Strategy:
             )
 
         living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
-
         best_monster = self.find_best_monster(living_monsters)
 
+        # Attack if monster is in range
         if (self.within_range(best_monster.get_position())):
             self.logger.info("Attacking monster")
             self.memory.set_value("last_action", "ATTACK")
@@ -86,6 +86,7 @@ class Strategy:
                 action_position=best_monster.get_position(),
                 action_index=0
             )
+        # Moving to best monster, no agro considered
         else:
             self.logger.info("Navigating to monster")
             self.memory.set_value("last_action", "MOVE")
@@ -96,22 +97,6 @@ class Strategy:
                 action_position=move_position,
                 action_index=0
             )
-
-        portals = self.board.get_portals()
-
-        game_state.get_monsters_on_board(self.curr_pos.get_board_id)
-
-        # Just move to the nearest portal (API doesn't work lul)
-        return CharacterDecision(
-            decision_type="MOVE",
-            action_position=Position(Position.create(x - 1,
-                                                     y,
-                                                     board_id)),
-            action_index=0
-        )
-
-        # Move to the nearest monster
-        monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
 
     # Returns the the next step to take on the optimal path to the endpoint form start point with given speed
     def path_find_with_speed(self, board, start, end, speed):
