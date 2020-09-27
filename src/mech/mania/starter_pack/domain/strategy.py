@@ -42,6 +42,15 @@ class Strategy:
         living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
         best_monster = self.find_best_monster(living_monsters)
 
+        inventory = self.my_player.get_inventory()
+
+        self.logger.info("\n\nMaxHP : " + str(self.my_player.get_max_health()))
+        self.logger.info("Current defense: " + str(self.my_player.get_defense()))
+        self.logger.info("Current speed: " + str(self.my_player.get_speed()))
+        self.logger.info("Current attack: " + str(self.my_player.get_attack()))
+        self.logger.info("Current experience: " + str(self.my_player.get_experience()))
+        self.logger.info("Current level: " + str(self.my_player.get_level()) + "\n")
+
         # Attack if monster is in range
         if (self.within_range(best_monster.get_position())):
             self.logger.info("Attacking monster")
@@ -51,15 +60,6 @@ class Strategy:
                 action_position=best_monster.get_position(),
                 action_index=0
             )
-
-        inventory = self.my_player.get_inventory()
-
-        self.logger.info("MaxHP : " + str(self.my_player.get_max_health()))
-        self.logger.info("Current defense: " + str(self.my_player.get_defense()))
-        self.logger.info("Current speed: " + str(self.my_player.get_speed()))
-        self.logger.info("Current attack: " + str(self.my_player.get_attack()))
-        self.logger.info("Current experience: " + str(self.my_player.get_experience()))
-        self.logger.info("Current level: " + str(self.my_player.get_level()))
         
         for i in range(len(inventory)):
             if self.is_better_item(inventory[i], 5, 5, 5, 1):
