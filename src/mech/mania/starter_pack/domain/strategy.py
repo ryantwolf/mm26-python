@@ -44,6 +44,7 @@ class Strategy:
 
         inventory = self.my_player.get_inventory()
 
+        #print info
         self.logger.info("\n\nMaxHP : " + str(self.my_player.get_max_health()))
         self.logger.info("Current defense: " + str(self.my_player.get_defense()))
         self.logger.info("Current speed: " + str(self.my_player.get_speed()))
@@ -53,17 +54,22 @@ class Strategy:
 
         # Attack if monster is in range
         if (self.within_range(best_monster.get_position())):
-            self.logger.info("Attacking monster")
+            self.logger.info("ATTACKING MONSTER")
             self.memory.set_value("last_action", "ATTACK")
             return CharacterDecision(
                 decision_type="ATTACK",
                 action_position=best_monster.get_position(),
                 action_index=0
             )
-        
-        for i in range(len(inventory)):
-            if self.is_better_item(inventory[i]):
-                return self.equip(i)
+
+        # iterate through leaderboard to see if there is a better item to equip
+        # TODO REPLACE WITH BEST
+
+        if (len(inventory) > 0):
+            best_item = inventory[0]
+            for i in range(len(inventory)):
+                if self.is_better_item(inventory[i]):
+                    return self.equip(i)
             
         # Equip last item picked up
         last_action, type = self.memory.get_value("last_action", str)
