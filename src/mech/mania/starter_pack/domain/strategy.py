@@ -115,7 +115,7 @@ class Strategy:
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(inventory[i], ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
+        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key, ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
                                        HEALTH_CHANGE_WEIGHT, EXPERIENCE_CHANGE_WEIGHT)]
 
         self.logger.info("Good items on board " + str(good_items_dict))
@@ -195,7 +195,6 @@ class Strategy:
 
             #current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change+player_weapon_attack + player_flat_experience_change
             # current_player_weapon_sum_stats_percent_changes = player_percent_attack_change + player_percent_defense_change + player_percent_speed_change + player_percent_health_change + player_percent_experience_change
-
             if item1.get_attack() > player_weapon_attack:
                 self.logger.info("I think " + str(item1.get_stats()) + " is better than " + str(self.my_player.get_weapon().get_stats()))
                 return True
