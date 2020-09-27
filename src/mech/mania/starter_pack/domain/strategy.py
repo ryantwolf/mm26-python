@@ -16,69 +16,78 @@ class Strategy:
         self.logger.setLevel(logging.DEBUG)
         logging.basicConfig(level = logging.INFO)
 
+    # Returns the the next step to take on the optimal path to the endpoint form start point with given speed
     def path_find_with_speed(self, board, start, end, speed):
+        self.logger.info("Finding Optimal Path")
         board[start.x][start.y] = 0
         board[end.x][end.y] = 1
-        iter = 0
-        while board[start.x][start.y] == 0 and iter < len(board)*len(board[0]):
+
+        iter = 0  # Used to verify I don't go into infinite steps because of impossible path
+        while board[start.x][start.y] == 0 and iter < len(board) * len(board[0]):
             for i in range(len(board)):
                 for j in range(len(board[0])):
-                    if board[i][j] > 0:
-                        if self.checkBounds(board, i + 1, j):
-                            if board[i + 1][j] > board[i][j] + 1 or board[i + 1][j] == 0:
-                                board[i + 1][j] = board[i][j] + 1
-                        if self.checkBounds(board, i - 1, j):
-                            if board[i - 1][j] > board[i][j] + 1 or board[i - 1][j] == 0:
-                                board[i - 1][j] = board[i][j] + 1
-                        if self.checkBounds(board, i, j + 1):
-                            if board[i][j + 1] > board[i][j] + 1 or board[i][j + 1] == 0:
-                                board[i][j + 1] = board[i][j] + 1
-                        if self.checkBounds(board, i, j - 1):
-                            if board[i][j - 1] > board[i][j] + 1 or board[i][j - 1] == 0:
-                                board[i][j - 1] = board[i][j] + 1
+                    board = self.update_board_step(board, i, j)
             iter += 1
 
         i = start.x
         j = start.y
-        self.logger.info((i, j))
+        # impossible to reach the end point
+        if board[i][j] == 0:
+            return None
+
+        self.logger.info("Starting position for this move: ", (i, j))
         pos = None
+
         for m in range(speed):
-            dict_move = {}
-            if self.checkBounds(board, i + 1, j):
-                if board[i + 1][j] > 0:
-                    self.logger.info("going right")
-                    dict_move[board[i + 1][j]] = Position.create(i + 1, j, start.get_board_id())
+            i, j, pos = self.get_next_move_from_opt_board(board, i, j, start)
 
-            if self.checkBounds(board, i - 1, j):
-                if board[i - 1][j] > 0:
-                    self.logger.info("going left")
-                    dict_move[board[i - 1][j]] = Position.create(i - 1, j, start.get_board_id())
+        self.logger.info("I am moving to: ", (i, j))
 
-            if self.checkBounds(board, i, j + 1):
-                if board[i][j + 1] > 0:
-                    self.logger.info("going down")
-                    dict_move[board[i][j + 1]] = Position.create(i, j + 1, start.get_board_id())
-
-            if self.checkBounds(board, i, j - 1):
-                if board[i][j - 1] > 0:
-                    self.logger.info("going up")
-                    dict_move[board[i][j - 1]] = Position.create(i, j - 1, start.get_board_id())
-            dict_move[board[i][j]] = Position.create(i,j, start.get_board_id())
-            minimum = min(dict_move)
-            pos = dict_move[minimum]
-            i = pos.x
-            j = pos.y
-
-        for j in range(len(board[0])):
-            row = []
-            for i in range(len(board)):
-                row.append("%02d" % board[i][j])
-            self.logger.info(row)
+        self.print_2D_grid(board)
         return pos
     
     def path_find(self, board, start, end):
         return self.path_find_with_speed(board, start, end, self.my_player.get_speed())
 
+    def update_board_step(self, board, i, j):
+        if board[i][j] > 0:
+            if self.checkBounds(board, i + 1, j):
+                if board[i + 1][j] > board[i][j] + 1 or board[i + 1][j] == 0:
+                    board[i + 1][j] = board[i][j] + 1
+            if self.checkBounds(board, i - 1, j):
+                if board[i - 1][j] > board[i][j] + 1 or board[i - 1][j] == 0:
+                    board[i - 1][j] = board[i][j] + 1
+            if self.checkBounds(board, i, j + 1):
+                if board[i][j + 1] > board[i][j] + 1 or board[i][j + 1] == 0:
+                    board[i][j + 1] = board[i][j] + 1
+            if self.checkBounds(board, i, j - 1):
+                if board[i][j - 1] > board[i][j] + 1 or board[i][j - 1] == 0:
+                    board[i][j - 1] = board[i][j] + 1
+        return board
+
+    def get_next_move_from_opt_board(self, board, i, j, start):
+        dict_move = {}
+        if self.checkBounds(board, i + 1, j):
+            if board[i + 1][j] > 0:
+                dict_move[board[i + 1][j]] = Position.create(i + 1, j, start.get_board_id())
+
+        if self.checkBounds(board, i - 1, j):
+            if board[i - 1][j] > 0:
+                dict_move[board[i - 1][j]] = Position.create(i - 1, j, start.get_board_id())
+
+        if self.checkBounds(board, i, j + 1):
+            if board[i][j + 1] > 0:
+                dict_move[board[i][j + 1]] = Position.create(i, j + 1, start.get_board_id())
+
+        if self.checkBounds(board, i, j - 1):
+            if board[i][j - 1] > 0:
+                dict_move[board[i][j - 1]] = Position.create(i, j - 1, start.get_board_id())
+        dict_move[board[i][j]] = Position.create(i, j, start.get_board_id())
+        minimum = min(dict_move)
+        pos = dict_move[minimum]
+        i = pos.x
+        j = pos.y
+        return i, j, pos
 
     def process_board(self, board):
         grid = board.get_grid()
@@ -91,7 +100,6 @@ class Strategy:
                 else:
                     processed_row.append(0)
             processed_grid.append(processed_row)
-        #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
 
     def process_board_with_agro(self, board, target_monster, all_monsters):
@@ -115,18 +123,7 @@ class Strategy:
                     else:
                         processed_row.append(0)
             processed_grid.append(processed_row)
-        #processed_grid = [[tile.get_type() == "IMPASSIBLE" for tile in row] for row in grid]
         return processed_grid
-
-    def move_toward(self, target):
-        pos = self.path_find(self.process_board(self.board), self.curr_pos, target)
-        return CharacterDecision(
-            decision_type = "MOVE",
-            action_position = Position(Position.create(pos.get_x(), 
-                                                        pos.get_y(), 
-                                                        pos.get_board_id())),
-            action_index = 0
-        )
     
     def cost_of_monster(self, monster):
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
@@ -136,7 +133,6 @@ class Strategy:
         return distance_cost - experience_gained + 5*abs(monster.get_level()-self.my_player.get_level())
         
     def cost_of_item(self, item):
-        #self.logger.info(item)
         if item is Wearable:
             if item is Weapon:
                 return -1*item.get_attack()
@@ -146,17 +142,6 @@ class Strategy:
 
     def calc_exp_by_killing(self, monster):
         return 10 * monster.get_level() * (self.my_player.get_level() / (self.my_player.get_level() + abs(self.my_player.get_level() - monster.get_level())))
-        
-    def intermediate_positions(self, turning_points):
-        positions = []
-        for i in range(len(turning_points)-1):
-            turning_point = turning_points[i]
-            positions.append(turning_point)
-            for x in range(turning_point[0] + 1, turning_points[i+1][0] + 1):
-                positions.append((x, turning_point[1]))
-            for y in range(turning_point[1] + 1, turning_points[i+1][1] + 1):
-                positions.append((turning_point[0], y))
-        return positions
     
     def has_monster(self, x, y, game_state):
         monsters = [m for m in game_state.get_monsters_on_board(self.curr_pos.get_board_id()) if not m.is_dead()]
@@ -346,3 +331,11 @@ class Strategy:
             action_position=nextMove,
             action_index=0
         )
+
+    # Prints a 2D grade of 2-digit numbers
+    def print_2D_grid(self, grid):
+        for j in range(len(grid[0])):
+            row = []
+            for i in range(len(grid)):
+                row.append("%02d" % grid[i][j])
+            self.logger.info(row)
