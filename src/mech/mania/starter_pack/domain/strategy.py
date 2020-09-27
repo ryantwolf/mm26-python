@@ -68,7 +68,7 @@ class Strategy:
         if (len(inventory) > 0):
             best_item = inventory[0]
             for i in range(len(inventory)):
-                if self.is_better_item(inventory[i]):
+                if self.is_better_item(inventory[i], 5, 5, 5, 1):
                     return self.equip(i)
             
         # Equip last item picked up
@@ -100,7 +100,7 @@ class Strategy:
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key)]
+        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key, 5, 5, 5, 1)]
 
         self.logger.info("Good items on board " + str(good_items_dict))
         if good_items_dict is not None and len(good_items_dict) > 0 and len(self.my_player.get_inventory()) < 16:
