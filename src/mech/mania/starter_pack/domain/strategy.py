@@ -349,13 +349,13 @@ class Strategy:
         cost = 0
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
         experience_gained_per_hp = self.calc_exp_by_killing(monster)/monster.get_current_health()
-        self.logger.info("Experience factor: " + str(experience_gained_per_hp))
+        #self.logger.info("Experience factor: " + str(experience_gained_per_hp))
         kill_rounds = monster.get_current_health() / (self.my_player.get_weapon().get_attack() * (25 + self.my_player.get_attack()) * .01)
-        self.logger.info("kill factor: " + str(kill_rounds))
+        #self.logger.info("kill factor: " + str(kill_rounds))
         eff_damage = max((.2 * monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01),
                          (monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01) - self.my_player.get_defense())
         die_rounds = self.my_player.get_current_health() / eff_damage
-        self.logger.info("die factor: " + str(die_rounds))
+        #self.logger.info("die factor: " + str(die_rounds))
         if (die_rounds < kill_rounds):
             cost += 25
         cost += distance_cost - experience_gained_per_hp * 30 + kill_rounds * .1 - die_rounds * .001
