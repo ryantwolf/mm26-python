@@ -69,14 +69,14 @@ class Strategy:
                 dict_move[board[i][j-1]] = Position.create(i,j-1, start.get_board_id())
                 #return Position.create(i,j-1, start.get_board_id())
                 #return Position.create(j-1, i, start.get_board_id())
-        self.logger.info(dict_move)
+        #self.logger.info(dict_move)
         minimum = min(dict_move)
-        self.logger.info(minimum)
+        #self.logger.info(minimum)
         for j in range(len(board[0])):
             row = []
             for i in range(len(board)):
                 row.append("%02d" % board[i][j])
-            self.logger.info(row)
+            #self.logger.info(row)
         return dict_move[minimum]
 
 
@@ -131,10 +131,12 @@ class Strategy:
     def cost_of_monster(self, monster):
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
         experience_gained = self.calc_exp_by_killing(monster)
-        return distance_cost - experience_gained + 5*monster.get_level()
-
+        kill_rounds = monster.get_current_health() / self.my_player.get_attack()
+        die_rounds = self.my_player.get_current_health() / monster.get_attack()
+        return distance_cost - experience_gained + 5*abs(monster.get_level()-self.my_player.get_level())
+        
     def cost_of_item(self, item):
-        self.logger.info(item)
+        #self.logger.info(item)
         if item is Wearable:
             if item is Weapon:
                 return -1*item.get_attack()
@@ -173,7 +175,7 @@ class Strategy:
 
     def get_item_dict(self):
         tiles = {}
-        self.logger.info(self.board.get_grid())
+        #self.logger.info(self.board.get_grid())
         for x in range(len(self.board.get_grid())):
             for y in range (len(self.board.get_grid()[x])):
                 current_position = Position.create(x, y, self.curr_pos.get_board_id())
@@ -198,115 +200,12 @@ class Strategy:
 
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
-                
+        self.logger.info(f'Inventory: {str(self.my_player.get_inventory())}')
+
         x = self.curr_pos.get_x()
         y = self.curr_pos.get_y()
         board_id = self.curr_pos.get_board_id()
         
-        self.logger.info('ITEMS')
-        first_items  = self.board.get_tile_at(Position(Position.create(1, 7, board_id))).get_items()
-        second_items = self.board.get_tile_at(Position(Position.create(7, 6, board_id))).get_items()
-        self.logger.info(first_items)
-        self.logger.info(second_items)
-        
-        self.logger.info('INVENTORY')
-        self.logger.info(self.my_player.get_inventory())
-        
-        grid = self.board.get_grid()
-        for i in range(len(grid)):
-            row = grid[i]
-            for j in range(len(row)):
-                tile = row[j]
-                if len(tile.get_items()) > 0:
-                    self.logger.info('Items found at (' + str(i) + ', ' + str(j) + ')')
-                    self.logger.info(tile.get_items())
-        
-        
-
-        move_down = CharacterDecision(
-                        decision_type = "MOVE",
-                        action_position = Position(Position.create(x, 
-                                                                    y + 1, 
-                                                                    board_id)),
-                        action_index = 0
-                    )
-        move_up = CharacterDecision(
-                        decision_type = "MOVE",
-                        action_position = Position(Position.create(x, 
-                                                                    y - 1, 
-                                                                    board_id)),
-                        action_index = 0
-                    )
-        
-        move_left = CharacterDecision(
-                        decision_type = "MOVE",
-                        action_position = Position(Position.create(x - 1, 
-                                                                    y, 
-                                                                    board_id)),
-                        action_index = 0
-                    )
-        
-        move_right = CharacterDecision(
-                        decision_type = "MOVE",
-                        action_position = Position(Position.create(x + 1, 
-                                                                    y, 
-                                                                    board_id)),
-                        action_index = 0
-                     ) 
-        
-        monsters = [m for m in game_state.get_monsters_on_board(board_id) if not m.is_dead()]
-        
-        
-        # Kill a monster if one is next to you
-        self.logger.info("MONSTERS: ")
-        for monster in monsters:
-            self.logger.info(monster.get_name() + ' at (' + str(monster.get_position().get_x()) + ', ' + str(monster.get_position().get_y()) + ')')
-            if monster.get_position().manhattan_distance(self.curr_pos) == 1:
-                self.logger.info('Attacking at (' + str(monster.get_position().get_x()) + ', ' + str(monster.get_position().get_y()) + ')')
-                return CharacterDecision(
-                    decision_type = "ATTACK",
-                    action_position = monster.get_position(),
-                    action_index = 0
-                )
-        
-        if x == 1 and y == 7:
-            self.logger.info('Attempting item pickup')
-            return CharacterDecision(
-                decision_type = "PICKUP",
-                action_position = None,
-                action_index = 0
-            )
-        else:
-            if x > 1:
-                return move_left
-            if y < 7:
-                return move_down
-            if y > 7:
-                return move_up
-            
-        
-        # if self.my_player.get_level() == 3:
-        #     if y != 10:
-        #         if x > 3:
-        #             return move_left
-        #         if x < 3:
-        #             return move_right
-        #         return move_down
-        #     if has_monster()
-            
-        portals = self.board.get_portals()
-        
-        if board_id == 'chairsquestionmark':
-            self.logger.info('In home board, time to move back and forth')
-            if y != 7:
-                return move_down
-            for monster in monsters:
-                if monster.get_position().get_x() == 1 and monster.get_position().get_y() == 7:
-                    self.logger.info('Move left')
-                    return move_left
-            self.logger.info('Move right')
-            return move_right
-
         
         board_id = self.curr_pos.get_board_id()
         
@@ -340,9 +239,8 @@ class Strategy:
         if items_dict is not None and len(items_dict) > 0:
             self.logger.info("Going to item")
             nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
-            self.logger.info("Nearest item: " + nearest_item)
             move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
-            self.logger.info("Move position for nearest item: " + move_position)
+            #self.logger.info("Move position for nearest item: " + move_position)
             return CharacterDecision(
                 decision_type="MOVE",
                 action_position=move_position,
@@ -372,50 +270,8 @@ class Strategy:
                 action_position=move_position,
                 action_index=0
             )
-
-        #self.logger.info("MONSTERS: ")
-        #for monster in monsters:
-        #    self.logger.info(monster.get_name())
-        #    if monster.get_position().manhattan_distance(self.curr_pos) == 1:
-        #        return CharacterDecision(
-        #            decision_type = "ATTACK",
-        #            action_position = monster.get_position(),
-        #            action_index = 0
-        #        )
-
         
         portals = self.board.get_portals()
-        
-        if board_id == 'chairsquestionmark':
-            self.logger.info('In home board, time to move toward the portal')
-            try:
-                self.logger.info(self.find_position_to_move(self.curr_pos, self.api.find_closest_portal(self.curr_pos)))
-            except:
-                self.logger.info("uh oh!")
-            #self.logger.info(self.find_position_to_move(self.curr_pos, portals[0]))
-            return self.move_toward(portals[0])
-        else:
-            self.logger.info('In pvp board, time to move toward monsters[0]')
-            return self.move_toward(monsters[0])
-        
-        # if x == 19:
-        #     self.logger.info('Move down')
-        #     return CharacterDecision(
-        #         decision_type = "MOVE",
-        #         action_position = Position(Position.create(x, 
-        #                                                    y + 1, 
-        #                                                    board_id)),
-        #         action_index = 0
-        #     )
-        # else:
-        #     self.logger.info('Move right')
-        #     return CharacterDecision(
-        #         decision_type = "MOVE",
-        #         action_position = Position(Position.create(x + 1, 
-        #                                                    y, 
-        #                                                    board_id)),
-        #         action_index = 0
-        #     )
 
     
         game_state.get_monsters_on_board(self.curr_pos.get_board_id)
@@ -431,43 +287,6 @@ class Strategy:
 
         # Move to the nearest monster
         monster_locations = self.api.find_enemies_by_distance(self.curr_pos)
-
-        #Other code
-
-        
-
-        weapon = self.my_player.get_weapon()
-        enemies = self.api.find_enemies_by_distance(self.curr_pos)
-        if enemies is None or len(enemies) == 0:
-            self.logger.info("There is no enemies in range, moving to spawn point")
-            self.memory.set_value("last_action", "MOVE")
-            return CharacterDecision(
-                decision_type="MOVE",
-                action_position=self.my_player.get_spawn_point(),
-                action_index=None
-            )
-
-        enemy_pos = enemies[0].get_position()
-        if self.curr_pos.manhattan_distance(enemy_pos) <= weapon.get_range():
-            self.logger.info("There is an enemy within weapon range, attacking")
-            self.memory.set_value("last_action", "ATTACK")
-            return CharacterDecision(
-                decision_type="ATTACK",
-                action_position=enemy_pos,
-                action_index=None
-            )
-
-
-        self.memory.set_value("last_action", "MOVE")
-        self.logger.info("Moving towards the nearest enemy")
-        decision = CharacterDecision(
-            decision_type="MOVE",
-            action_position=self.find_position_to_move(self.my_player, enemy_pos),
-            action_index=None
-        )
-
-        return decision
-
 
     # feel free to write as many helper functions as you need!
     def find_position_to_move(self, player: Player, destination: Position) -> Position:
