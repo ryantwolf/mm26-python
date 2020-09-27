@@ -179,21 +179,13 @@ class Strategy:
         self.curr_pos = self.my_player.get_position()
         self.board = game_state.get_board(self.curr_pos.get_board_id())
 
-        self.board = game_state.get_board(self.curr_pos.get_board_id())
-
-        self.logger.info("In make_decision")
-
+        self.logger.info("\nSTARTING NEW TURN\n")
+        self.logger.info("Current Position: ")
         self.logger.info('X: ' + str(self.curr_pos.get_x()))
         self.logger.info('Y: ' + str(self.curr_pos.get_y()))
-        self.logger.info(f'Inventory: {str(self.my_player.get_inventory())}')
+        self.logger.info(f'\nInventory: {str(self.my_player.get_inventory())}')
 
-        x = self.curr_pos.get_x()
-        y = self.curr_pos.get_y()
         board_id = self.curr_pos.get_board_id()
-        
-        
-        board_id = self.curr_pos.get_board_id()
-        
 
         # Equip last item picked up
         last_action, type = self.memory.get_value("last_action", str)
