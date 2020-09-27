@@ -71,7 +71,7 @@ class Strategy:
             best_idx = 0
             for i in range(len(inventory)):
                 if isinstance(inventory[i], Weapon):
-                    self.logger.info("I see a weapon!")
+                    self.logger.info("I see a weapon!" + str(inventory[i].get_stats()))
 
                 if self.is_better_item(inventory[i], 5, 5, 5, 1, 10, 5):
                     if isinstance(inventory[i], Weapon):
@@ -429,6 +429,8 @@ class Strategy:
         if (die_rounds < kill_rounds):
             cost += 25
         cost += distance_cost - experience_gained_per_hp * 30 + kill_rounds * .1 - die_rounds * .001
+        if monster.get_max_health() == 50 and monster.get_defense() == 5:
+            cost -= 100
         return cost
         
     def cost_of_item(self, item):
