@@ -441,13 +441,14 @@ class Strategy:
         #self.logger.info("Experience factor: " + str(experience_gained_per_hp))
         kill_rounds = monster.get_current_health() / max(my_attack*.2, my_attack-monster.get_defense())
         #self.logger.info("kill factor: " + str(kill_rounds))
-        eff_damage = max(.2 * monster_attack,
-                         monster_attack - self.my_player.get_defense())
+        eff_damage = max(1.0, max(.2 * monster_attack, monster_attack - self.my_player.get_defense()))
         die_rounds = self.my_player.get_current_health() / eff_damage
         #self.logger.info("die factor: " + str(die_rounds))
         if (die_rounds < kill_rounds):
             cost += 25
         cost += distance_cost - experience_gained_per_hp * 30 + kill_rounds * .1 - die_rounds * .001
+        if monster.get_max_health() == 10 and monster.get_level == 1:
+            cost -= 50
         return cost
         
     def cost_of_item(self, item):
