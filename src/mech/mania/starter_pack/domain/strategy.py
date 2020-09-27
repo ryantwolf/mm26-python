@@ -81,15 +81,23 @@ class Strategy:
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
         good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(tile_items[i], 5, 5, 5, 1, 10, 5)]
 
-        if good_tile_items is not None and len(good_tile_items) > 0 and len(self.my_player.get_inventory()) < 16:
-            self.logger.info("\nThere are items on my tile, picking up item")
-            self.logger.info("Items on this tile: " + str(good_tile_items))
-            self.memory.set_value("last_action", "PICKUP")
-            return CharacterDecision(
-                decision_type="PICKUP",
-                action_position=None,
-                action_index=good_tile_items[0]
-            )
+        if good_tile_items is not None and len(good_tile_items) > 0:
+            if len(self.my_player.get_inventory()) < 16:
+                self.logger.info("\nThere are items on my tile, picking up item")
+                self.logger.info("Items on this tile: " + str(good_tile_items))
+                self.memory.set_value("last_action", "PICKUP")
+                return CharacterDecision(
+                    decision_type="PICKUP",
+                    action_position=None,
+                    action_index=good_tile_items[0]
+                )
+            else:
+                self.logger.info("Dropping item")
+                return CharacterDecision(
+                    decision_type="DROP",
+                    action_position=None,
+                    action_index=0
+                )
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
