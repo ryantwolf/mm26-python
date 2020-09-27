@@ -299,10 +299,12 @@ class Strategy:
     
     def cost_of_monster(self, monster):
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
-        experience_gained_per_hp = self.calc_exp_by_killing(monster)#/monster.get_current_health()
-        kill_rounds = monster.get_current_health() / self.my_player.get_attack()
-        die_rounds = self.my_player.get_current_health() #monster.get_attack()
-        return distance_cost - experience_gained_per_hp * 3 + 3*abs(monster.get_level()-self.my_player.get_level())
+        experience_gained_per_hp = self.calc_exp_by_killing(monster)/monster.get_current_health()
+        kill_rounds = monster.get_current_health() / (self.my_player.get_weapon().get_attack() * (25 + self.my_player.get_attack()) * .01)
+        eff_damage = max((.2 * monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01),
+                         (monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01) - self.my_player.get_defense())
+        die_rounds = self.my_player.get_current_health() / eff_damage
+        return distance_cost - experience_gained_per_hp * 12 + kill_rounds * .25 - die_rounds * .25
         
     def cost_of_item(self, item):
         if item is Wearable:
