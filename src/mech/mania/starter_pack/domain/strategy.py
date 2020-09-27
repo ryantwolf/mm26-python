@@ -459,8 +459,9 @@ class Strategy:
         if (die_rounds < kill_rounds):
             cost += 25
         cost += distance_cost - experience_gained_per_hp * 30 + kill_rounds * .1 - die_rounds * .001
-        if monster.get_max_health() == 50 and monster.get_level == 5:
-            cost -= distance_cost - 5
+        if monster.get_max_health() == 50 and monster.get_level() == 5:
+            self.logger.info("GOING TO BAT!")
+            cost -= 3000
         return cost
         
     def cost_of_item(self, item):
