@@ -169,13 +169,9 @@ class Strategy:
         # item_sum_percentage_change = item_percent_attack_change + item_percent_defense_change + item_percent_speed_change + item_percent_health_change + item_percent_experience_change
 
         if isinstance(item1, Weapon):
-            item_sum_stats += item1.get_attack()*weapon_attack_weight
+            #item_sum_stats += item1.get_attack()*weapon_attack_weight
 
-            player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
-            player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change() * flat_defense_weight
-            player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change() * flat_speed_weight
-            player_flat_health_change = self.my_player.get_weapon().get_stats().get_flat_health_change() * flat_health_weight
-            player_flat_experience_change = self.my_player.get_weapon().get_stats().get_flat_experience_change() * experience_weight
+            #player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
             player_weapon_attack = self.my_player.get_weapon().get_attack()*weapon_attack_weight
 
             # player_percent_attack_change = self.my_player.get_weapon().get_stats().get_percent_attack_change()
@@ -184,10 +180,10 @@ class Strategy:
             # player_percent_health_change = self.my_player.get_weapon().get_stats().get_percent_health_change()
             # player_percent_experience_change = self.my_player.get_weapon().get_stats().get_percent_experience_change()
 
-            current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change+player_weapon_attack + player_flat_experience_change
+            #current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change+player_weapon_attack + player_flat_experience_change
             # current_player_weapon_sum_stats_percent_changes = player_percent_attack_change + player_percent_defense_change + player_percent_speed_change + player_percent_health_change + player_percent_experience_change
 
-            if item_sum_stats > current_player_weapon_sum_stats: #and item_sum_percentage_change > current_player_weapon_sum_stats_percent_changes:
+            if item1.get_attack() > player_weapon_attack:
                 self.logger.info("I think " + str(item1.get_stats()) + " is better than " + str(self.my_player.get_weapon().get_stats()))
                 return True
 
@@ -212,6 +208,9 @@ class Strategy:
                 return True
 
         if isinstance(item1, Hat):
+            item_regen = item1.get_stats().get_flat_regen_per_turn()
+            self.logger.info("New item's regen: " + str(item_regen))
+
             player_flat_attack_change = self.my_player.get_hat().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_hat().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_hat().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -227,11 +226,14 @@ class Strategy:
             current_player_hat_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
             #current_player_hat_sum_stats_percent_changes = player_percent_attack_change + player_percent_defense_change + player_percent_speed_change + player_percent_health_change + player_percent_experience_change
 
-            if item_sum_stats > current_player_hat_sum_stats: #and item_sum_percentage_change > current_player_hat_sum_stats_percent_changes:
+            if item_sum_stats > current_player_hat_sum_stats and item_regen > self.my_player.get_hat().get_stats().get_flat_regen_per_turn(): #and item_sum_percentage_change > current_player_hat_sum_stats_percent_changes:
                 self.logger.info("I think " + str(item1.get_stats()) + " is better than " + str(self.my_player.get_hat().get_stats()))
                 return True
 
         if isinstance(item1, Clothes):
+            item_regen = item1.get_stats().get_flat_regen_per_turn()
+            self.logger.info("New item's regen: " + str(item_regen))
+
             player_flat_attack_change = self.my_player.get_clothes().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_clothes().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_clothes().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -247,11 +249,14 @@ class Strategy:
             current_player_clothes_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
             #current_player_clothes_clothes_stats_percent_changes = player_percent_attack_change + player_percent_defense_change + player_percent_speed_change + player_percent_health_change + player_percent_experience_change
 
-            if item_sum_stats > current_player_clothes_sum_stats: #and item_sum_stats > current_player_clothes_clothes_stats_percent_changes:
+            if item_sum_stats > current_player_clothes_sum_stats and item_regen > self.my_player.get_clothes().get_stats().get_flat_regen_per_turn(): #and item_sum_stats > current_player_clothes_clothes_stats_percent_changes:
                 self.logger.info("I think " + str(item1.get_stats()) + " is better than " + str(self.my_player.get_clothes().get_stats()))
                 return True
 
         if isinstance(item1, Accessory):
+            item_regen = item1.get_stats().get_flat_regen_per_turn()
+            self.logger.info("New item's regen: " + str(item_regen))
+
             player_flat_attack_change = self.my_player.get_accessory().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_accessory().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_accessory().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -267,7 +272,7 @@ class Strategy:
             current_player_accessory_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
             #current_player_clothes_clothes_stats_percent_changes = player_percent_attack_change + player_percent_defense_change + player_percent_speed_change + player_percent_health_change + player_percent_experience_change
 
-            if item_sum_stats > current_player_accessory_sum_stats: #and item_sum_percentage_change > current_player_clothes_clothes_stats_percent_changes:
+            if item_sum_stats > current_player_accessory_sum_stats and item_regen > self.my_player.get_accessory().get_stats().get_flat_regen_per_turn(): #and item_sum_percentage_change > current_player_clothes_clothes_stats_percent_changes:
                 self.logger.info("I think " + str(item1.get_stats()) + " is better than " + str(self.my_player.get_accessory().get_stats()))
                 return True
 
