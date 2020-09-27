@@ -132,7 +132,7 @@ class Strategy:
 
             current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
-            if self.my_player.get_weapon() == None or item_sum_stats > current_player_weapon_sum_stats:
+            if item_sum_stats > current_player_weapon_sum_stats:
                 return True
 
         if isinstance(item, Shoes):
@@ -143,7 +143,7 @@ class Strategy:
 
             current_player_shoes_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
-            if self.my_player.get_shoes() == None or item_sum_stats > current_player_shoes_sum_stats:
+            if item_sum_stats > current_player_shoes_sum_stats:
                 return True
 
         if isinstance(item, Hat):
@@ -154,7 +154,7 @@ class Strategy:
 
             current_player_hat_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
-            if self.my_player.get_hat() == None or item_sum_stats > current_player_hat_sum_stats:
+            if item_sum_stats > current_player_hat_sum_stats:
                 return True
 
         if isinstance(item, Clothes):
@@ -165,7 +165,7 @@ class Strategy:
 
             current_player_clothes_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
-            if self.my_player.get_clothes() == None or item_sum_stats > current_player_clothes_sum_stats:
+            if item_sum_stats > current_player_clothes_sum_stats:
                 return True
 
         if isinstance(item, Accessory):
@@ -176,7 +176,7 @@ class Strategy:
 
             current_player_accessory_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
-            if self.my_player.get_accessory() == None or item_sum_stats > current_player_accessory_sum_stats:
+            if item_sum_stats > current_player_accessory_sum_stats:
                 return True
 
         if isinstance(item, Consumable):
