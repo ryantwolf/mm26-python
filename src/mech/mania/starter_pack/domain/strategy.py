@@ -207,7 +207,7 @@ class Strategy:
 
         return False
 
-    def is_better_item_compare(self, item1, item2, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight):
+    def is_better_item_compare(self, item1, item2, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight, weapon_attack_weight, experience_weight):
         if (item2 is None):
             return True
         elif item1 is None:
@@ -218,15 +218,17 @@ class Strategy:
             item_flat_defense_change = item1.get_stats().get_flat_defense_change() * flat_defense_weight
             item_flat_speed_change = item1.get_stats().get_flat_speed_change() * flat_speed_weight
             item_flat_health_change = item1.get_stats().get_flat_health_change() * flat_health_weight
+            item_flat_experience_change = item1.get_stats().get_flat_experience_change() * experience_weight
 
-            item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change
+            item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change + item_flat_experience_change
 
             player_flat_attack_change = item2.get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = item2.get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = item2.get_stats().get_flat_speed_change() * flat_speed_weight
             player_flat_health_change = item2.get_stats().get_flat_health_change() * flat_health_weight
+            player_flat_experience_change = item2.get_stats().get_flat_experience_change() * experience_weight
 
-            current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
+            current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
 
             if item_sum_stats > current_player_weapon_sum_stats:
                 return True
