@@ -92,7 +92,7 @@ class Strategy:
 
         # Getting items on current tile and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
-        good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(inventory[i], ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
+        good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(tile_items[i], ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
                                        HEALTH_CHANGE_WEIGHT, EXPERIENCE_CHANGE_WEIGHT)]
 
         if good_tile_items is not None and len(good_tile_items) > 0:
