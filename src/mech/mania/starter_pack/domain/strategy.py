@@ -213,11 +213,11 @@ class Strategy:
                 return True
 
         if isinstance(item1, Shoes):
-            player_flat_attack_change = self.my_player.get_shoes().get_stats().get_flat_attack_change() * flat_attack_weight
-            player_flat_defense_change = self.my_player.get_shoes().get_stats().get_flat_defense_change() * flat_defense_weight
-            player_flat_speed_change = self.my_player.get_shoes().get_stats().get_flat_speed_change() * flat_speed_weight
-            player_flat_health_change = self.my_player.get_shoes().get_stats().get_flat_health_change() * flat_health_weight
-            player_flat_experience_change = self.my_player.get_shoes().get_stats().get_flat_experience_change() * experience_weight
+            # player_flat_attack_change = self.my_player.get_shoes().get_stats().get_flat_attack_change() * flat_attack_weight
+            # player_flat_defense_change = self.my_player.get_shoes().get_stats().get_flat_defense_change() * flat_defense_weight
+            # player_flat_speed_change = self.my_player.get_shoes().get_stats().get_flat_speed_change() * flat_speed_weight
+            # player_flat_health_change = self.my_player.get_shoes().get_stats().get_flat_health_change() * flat_health_weight
+            # player_flat_experience_change = self.my_player.get_shoes().get_stats().get_flat_experience_change() * experience_weight
 
             # player_percent_attack_change = self.my_player.get_shoes().get_stats().get_percent_attack_change()
             # player_percent_defense_change = self.my_player.get_shoes().get_stats().get_percent_defense_change()
@@ -225,10 +225,10 @@ class Strategy:
             # player_percent_health_change = self.my_player.get_shoes().get_stats().get_percent_health_change()
             # player_percent_experience_change = self.my_player.get_shoes().get_stats().get_percent_experience_change()
 
-            current_player_shoes_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
+            #current_player_shoes_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
             #current_player_shoes_sum_stats_percent_changes = player_percent_attack_change + player_percent_defense_change + player_percent_speed_change + player_percent_health_change + player_percent_experience_change
 
-            if item_sum_stats > current_player_shoes_sum_stats: #and item_sum_percentage_change > current_player_shoes_sum_stats_percent_changes:
+            if item_flat_speed_change > self.my_player.get_shoes().get_stats().get_flat_speed_change(): #and item_sum_percentage_change > current_player_shoes_sum_stats_percent_changes:
                 self.logger.info("I think " + str(item1.get_stats()) + " is better than " + str(self.my_player.get_shoes().get_stats()))
                 return True
 
