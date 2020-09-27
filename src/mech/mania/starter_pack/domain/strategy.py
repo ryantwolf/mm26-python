@@ -64,7 +64,7 @@ class Strategy:
                 action_index=0
             )
 
-        # iterate through leaderboard to see if there is a better item to equip
+        # iterate through inventory to see if there is a better item to equip
         if len(inventory) > 0:
             self.logger.info("Looking through inventory to see for better items!")
             best_item = None
@@ -74,6 +74,9 @@ class Strategy:
                     if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1, 10, 5):
                         best_item = inventory[i]
                         best_idx = i
+                    else:
+                        self.logger.info("The item " + str(inventory[i].get_stats()) + " is not better!")
+
             if best_item is not None:
                 self.logger.info("Equipping item now!")
                 return self.equip(best_idx)
