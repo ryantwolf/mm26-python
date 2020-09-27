@@ -77,67 +77,7 @@ class Strategy:
         return pos
     
     def path_find(self, board, start, end):
-        #self.logger.info(board)
-        board[start.x][start.y] = 0
-        board[end.x][end.y] = 1
-        iter = 0
-        while (board[start.x][start.y] == 0):
-            for i in range(len(board)):
-                for j in range(len(board[0])):
-                    if (board[i][j] > 0):
-                        if self.checkBounds(board, i + 1, j):
-                            if board[i + 1][j] > board[i][j] + 1 or board[i + 1][j] == 0:
-                                board[i + 1][j] = board[i][j] + 1
-                        if self.checkBounds(board, i - 1, j):
-                            if board[i - 1][j] > board[i][j] + 1 or board[i - 1][j] == 0:
-                                board[i - 1][j] = board[i][j] + 1
-                        if self.checkBounds(board, i, j+1):
-                            if board[i][j+1] > board[i][j] + 1 or board[i][j+1] == 0:
-                                board[i][j+1] = board[i][j] + 1
-                        if self.checkBounds(board, i, j-1):
-                            if board[i][j-1] > board[i][j] + 1 or board[i][j-1] == 0:
-                                board[i][j-1] = board[i][j] + 1
-
-        i = start.x
-        j = start.y
-        self.logger.info((i,j))
-
-        dict_move = {}
-        if self.checkBounds(board, i + 1, j):
-            if board[i + 1][j] > 0:
-                self.logger.info("going right")
-                dict_move[board[i+1][j]] = Position.create(i + 1,j, start.get_board_id())
-                #return Position.create(i+1,j, start.get_board_id())
-                #return Position.create(j, i+1, start.get_board_id())
-        if self.checkBounds(board, i - 1, j):
-            if board[i - 1][j] > 0:
-                self.logger.info("going left")
-                dict_move[board[i-1][j]] = Position.create(i - 1,j, start.get_board_id())
-                #return Position.create(i-1,j, start.get_board_id())
-                #return Position.create(j, i - 1, start.get_board_id())
-
-        if self.checkBounds(board, i, j + 1):
-            if board[i][j +1] > 0:
-                self.logger.info("going down")
-                dict_move[board[i][j+1]] = Position.create(i,j+1, start.get_board_id())
-                #return Position.create(i,j+1, start.get_board_id())
-                #return Position.create(j+1, i, start.get_board_id())
-
-        if self.checkBounds(board, i, j - 1):
-            if board[i][j -1] > 0:
-                self.logger.info("going up")
-                dict_move[board[i][j-1]] = Position.create(i,j-1, start.get_board_id())
-                #return Position.create(i,j-1, start.get_board_id())
-                #return Position.create(j-1, i, start.get_board_id())
-        self.logger.info(dict_move)
-        minimum = min(dict_move)
-        self.logger.info(minimum)
-        for j in range(len(board[0])):
-            row = []
-            for i in range(len(board)):
-                row.append("%02d" % board[i][j])
-            self.logger.info(row)
-        return dict_move[minimum]
+        return self.path_find_with_speed(board, start, end, self.my_player.get_speed())
 
 
     def process_board(self, board):
