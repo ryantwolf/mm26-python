@@ -54,16 +54,6 @@ class Strategy:
         self.logger.info("Weapon damage: " + str(self.my_player.get_weapon().get_attack()))
         self.logger.info("Attack: " + str(self.my_player.get_attack()))
 
-        # Attack if monster is in range
-        if (self.within_range(best_monster.get_position())):
-            self.logger.info("ATTACKING MONSTER")
-            self.memory.set_value("last_action", "ATTACK")
-            return CharacterDecision(
-                decision_type="ATTACK",
-                action_position=best_monster.get_position(),
-                action_index=0
-            )
-
         # iterate through inventory to see if there is a better item to equip
         if len(inventory) > 0:
             self.logger.info("Looking through inventory to see for better items!")
@@ -71,7 +61,7 @@ class Strategy:
             best_idx = 0
             for i in range(len(inventory)):
                 if isinstance(inventory[i], Weapon):
-                    self.logger.info("I see a weapon!" + str(inventory[i].get_stats()))
+                    self.logger.info("I see a weapon!" + str(inventory[i].get_attack()))
 
                 if self.is_better_item(inventory[i], 5, 5, 5, 1, 10, 5):
                     if isinstance(inventory[i], Weapon):
@@ -133,6 +123,16 @@ class Strategy:
                     action_position=None,
                     action_index=0
                 )
+
+        # Attack if monster is in range
+        if (self.within_range(best_monster.get_position())):
+            self.logger.info("ATTACKING MONSTER")
+            self.memory.set_value("last_action", "ATTACK")
+            return CharacterDecision(
+                decision_type="ATTACK",
+                action_position=best_monster.get_position(),
+                action_index=0
+            )
 
         # Moving to best monster, no agro considered
         living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
@@ -429,8 +429,6 @@ class Strategy:
         if (die_rounds < kill_rounds):
             cost += 25
         cost += distance_cost - experience_gained_per_hp * 30 + kill_rounds * .1 - die_rounds * .001
-        if monster.get_max_health() == 50 and monster.get_defense() == 5:
-            cost -= 100
         return cost
         
     def cost_of_item(self, item):
