@@ -65,36 +65,18 @@ class Strategy:
             )
 
         # iterate through leaderboard to see if there is a better item to equip
-        for i in range(len(inventory)):
-            if self.is_better_item(inventory[i], 5, 5, 5, 1, 10):
-                return self.equip(i)
-        # if len(inventory) > 0:
-        #     best_item = self.my_player.get_inventory()[0]
-        #     best_idx = 0
-        #     for i in range(len(inventory)):
-        #         if self.is_better_item(inventory[i], 5, 5, 5, 1):
-        #             if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1):
-        #                 best_item = inventory[i]
-        #                 best_idx = i
-        #     if best_item is not None:
-        #         return self.equip(best_idx)
+        if len(inventory) > 0:
+             best_item = None
+             best_idx = 0
+             for i in range(len(inventory)):
+                 if self.is_better_item(inventory[i], 5, 5, 5, 1):
+                     if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1):
+                         best_item = inventory[i]
+                         best_idx = i
+             if best_item is not None:
+                 return self.equip(best_idx)
 
-        # Equip last item picked up
-        #last_action, type = self.memory.get_value("last_action", str)
-        #self.logger.info(f"Last_action: '{last_action}'")
-
-        '''if last_action is not None and last_action == "PICKUP":
-            self.logger.info("Equipping an item")
-            self.memory.set_value("last_action", "EQUIP")
-            return CharacterDecision(
-                decision_type="EQUIP",
-                action_position=None,
-                action_index=0  # self.my_player.get_free_inventory_index()
-            )
-        if last_action is None:
-            self.logger.info("The Last action was None")'''
-
-        # Getting items on current times and picking up
+        # Getting items on current tile and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
         good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(tile_items[i], 5, 5, 5, 1, 10)]
 
@@ -218,7 +200,10 @@ class Strategy:
         return False
 
     def is_better_item_compare(self, item1, item2, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight):
-
+        if (item2 is None):
+            return True
+        elif item1 is None:
+            return False
         hierarchy = {Weapon: 4, Shoes: 0, Hat: 3, Clothes:1, Accessory:2}
         if type(item1) is type(item2):
             item_flat_attack_change = item1.get_stats().get_flat_attack_change() * flat_attack_weight
@@ -353,13 +338,20 @@ class Strategy:
         return processed_grid
     
     def cost_of_monster(self, monster):
+        cost = 0
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
         experience_gained_per_hp = self.calc_exp_by_killing(monster)/monster.get_current_health()
+        self.logger.info("Experience factor: " + str(experience_gained_per_hp))
         kill_rounds = monster.get_current_health() / (self.my_player.get_weapon().get_attack() * (25 + self.my_player.get_attack()) * .01)
+        self.logger.info("kill factor: " + str(kill_rounds))
         eff_damage = max((.2 * monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01),
                          (monster.get_weapon().get_attack() * (25 + monster.get_weapon().get_attack()) * .01) - self.my_player.get_defense())
         die_rounds = self.my_player.get_current_health() / eff_damage
-        return distance_cost - experience_gained_per_hp * 20 + kill_rounds * .25 - die_rounds * .25
+        self.logger.info("die factor: " + str(die_rounds))
+        if (die_rounds < kill_rounds):
+            cost += 25
+        cost += distance_cost - experience_gained_per_hp * 30 + kill_rounds * .1 - die_rounds * .001
+        return cost
         
     def cost_of_item(self, item):
         if item is Wearable:
