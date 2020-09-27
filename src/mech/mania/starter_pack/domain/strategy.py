@@ -38,6 +38,22 @@ class Strategy:
         last_action, type = self.memory.get_value("last_action", str)
         self.logger.info(f"Last_action: '{last_action}'")
 
+
+        living_monsters = [monster for monster in game_state.get_monsters_on_board(board_id) if not monster.is_dead()]
+        best_monster = self.find_best_monster(living_monsters)
+
+        # Attack if monster is in range
+        if (self.within_range(best_monster.get_position())):
+            self.logger.info("Attacking monster")
+            self.memory.set_value("last_action", "ATTACK")
+            return CharacterDecision(
+                decision_type="ATTACK",
+                action_position=best_monster.get_position(),
+                action_index=0
+            )
+        
+        return self.goTo(self.board.get_portals()[0], game_state.get_monsters_on_board(board_id))
+
         if last_action is not None and last_action == "PICKUP":
             self.logger.info("Equipping an item")
             self.memory.set_value("last_action", "EQUIP")
@@ -184,7 +200,7 @@ class Strategy:
             processed_grid.append(processed_row)
         return processed_grid
 
-    def process_board_with_agro(self, board, target_monster, all_monsters):
+    def process_board_with_agro(self, board, target_monster_position, all_monsters):
         grid = board.get_grid()
         processed_grid = []
         for row in grid:
@@ -193,7 +209,7 @@ class Strategy:
                 y = len(processed_grid)
                 x = len(row)
                 for mon in all_monsters:
-                    if mon != target_monster:
+                    if mon.get_position().get_x() != target_monster_position.get_x() and mon.get_position().get_y() != target_monster_position.get_y():
                         current_position = Position.create(x, y, mon.get_position().get_board_id())
                         in_range = mon.get_position().manhattan_distance(current_position) <= mon.get_aggro_range()
                         if in_range:
@@ -302,6 +318,8 @@ class Strategy:
     def goTo(self, toPosition, monsters):
         board = self.process_board_with_agro(self.board, toPosition, monsters)
         nextMove = self.path_find(board, self.curr_pos, toPosition)
+        if nextMove is None:
+            self.logger.info("No path found to portal without aggro!")
         return CharacterDecision(
             decision_type="MOVE",
             action_position=nextMove,
