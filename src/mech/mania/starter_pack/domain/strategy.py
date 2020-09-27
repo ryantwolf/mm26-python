@@ -88,9 +88,11 @@ class Strategy:
 
         # Getting items on current times and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
-        if tile_items is not None and len(tile_items) > 0 and len(self.my_player.get_inventory()) < 16:
+        good_tile_items = [item for item in tile_items if self.is_better_item(item, 5, 5, 5, 1)]
+
+        if good_tile_items is not None and len(good_tile_items) > 0 and len(self.my_player.get_inventory()) < 16:
             self.logger.info("\nThere are items on my tile, picking up item")
-            self.logger.info("Items on this tile: " + str(tile_items))
+            self.logger.info("Items on this tile: " + str(good_tile_items))
             self.memory.set_value("last_action", "PICKUP")
             return CharacterDecision(
                 decision_type="PICKUP",
@@ -149,10 +151,10 @@ class Strategy:
                 return True
 
         if isinstance(item, Shoes):
-            player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
-            player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change() * flat_defense_weight
-            player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change() * flat_speed_weight
-            player_flat_health_change = self.my_player.get_weapon().get_stats().get_flat_health_change() * flat_health_weight
+            player_flat_attack_change = self.my_player.get_shoes().get_stats().get_flat_attack_change() * flat_attack_weight
+            player_flat_defense_change = self.my_player.get_shoes().get_stats().get_flat_defense_change() * flat_defense_weight
+            player_flat_speed_change = self.my_player.get_shoes().get_stats().get_flat_speed_change() * flat_speed_weight
+            player_flat_health_change = self.my_player.get_shoes().get_stats().get_flat_health_change() * flat_health_weight
 
             current_player_shoes_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
@@ -160,10 +162,10 @@ class Strategy:
                 return True
 
         if isinstance(item, Hat):
-            player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
-            player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change() * flat_defense_weight
-            player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change() * flat_speed_weight
-            player_flat_health_change = self.my_player.get_weapon().get_stats().get_flat_health_change() * flat_health_weight
+            player_flat_attack_change = self.my_player.get_hat().get_stats().get_flat_attack_change() * flat_attack_weight
+            player_flat_defense_change = self.my_player.get_hat().get_stats().get_flat_defense_change() * flat_defense_weight
+            player_flat_speed_change = self.my_player.get_hat().get_stats().get_flat_speed_change() * flat_speed_weight
+            player_flat_health_change = self.my_player.get_hat().get_stats().get_flat_health_change() * flat_health_weight
 
             current_player_hat_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
@@ -171,10 +173,10 @@ class Strategy:
                 return True
 
         if isinstance(item, Clothes):
-            player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
-            player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change() * flat_defense_weight
-            player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change() * flat_speed_weight
-            player_flat_health_change = self.my_player.get_weapon().get_stats().get_flat_health_change() * flat_health_weight
+            player_flat_attack_change = self.my_player.get_clothes().get_stats().get_flat_attack_change() * flat_attack_weight
+            player_flat_defense_change = self.my_player.get_clothes().get_stats().get_flat_defense_change() * flat_defense_weight
+            player_flat_speed_change = self.my_player.get_clothes().get_stats().get_flat_speed_change() * flat_speed_weight
+            player_flat_health_change = self.my_player.get_clothes().get_stats().get_flat_health_change() * flat_health_weight
 
             current_player_clothes_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
@@ -182,10 +184,10 @@ class Strategy:
                 return True
 
         if isinstance(item, Accessory):
-            player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
-            player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change() * flat_defense_weight
-            player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change() * flat_speed_weight
-            player_flat_health_change = self.my_player.get_weapon().get_stats().get_flat_health_change() * flat_health_weight
+            player_flat_attack_change = self.my_player.get_accessory().get_stats().get_flat_attack_change() * flat_attack_weight
+            player_flat_defense_change = self.my_player.get_accessory().get_stats().get_flat_defense_change() * flat_defense_weight
+            player_flat_speed_change = self.my_player.get_accessory().get_stats().get_flat_speed_change() * flat_speed_weight
+            player_flat_health_change = self.my_player.get_accessory().get_stats().get_flat_health_change() * flat_health_weight
 
             current_player_accessory_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
 
