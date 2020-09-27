@@ -63,14 +63,17 @@ class Strategy:
             )
 
         # iterate through leaderboard to see if there is a better item to equip
-        # TODO REPLACE WITH BEST
-
-        if (len(inventory) > 0):
-            best_item = inventory[0]
+        if len(inventory) > 0:
+            best_item = None
+            best_idx = None
             for i in range(len(inventory)):
                 if self.is_better_item(inventory[i], 5, 5, 5, 1):
-                    return self.equip(i)
-            
+                    if best_item is None or self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1):
+                        best_item = inventory[i]
+                        best_idx = i
+            if best_item is not None:
+                return self.equip(best_idx)
+
         # Equip last item picked up
         last_action, type = self.memory.get_value("last_action", str)
         self.logger.info(f"Last_action: '{last_action}'")
@@ -126,20 +129,19 @@ class Strategy:
             action_index=0
         )
 
-    def is_better_item(self, item, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight):
+    def is_better_item(self, item1, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight):
 
-        if isinstance(item, Consumable):
+        if isinstance(item1, Consumable):
             return True
 
-        
-        item_flat_attack_change = item.get_stats().get_flat_attack_change() * flat_attack_weight
-        item_flat_defense_change = item.get_stats().get_flat_defense_change() * flat_defense_weight
-        item_flat_speed_change = item.get_stats().get_flat_speed_change() * flat_speed_weight
-        item_flat_health_change = item.get_stats().get_flat_health_change() * flat_health_weight
+        item_flat_attack_change = item1.get_stats().get_flat_attack_change() * flat_attack_weight
+        item_flat_defense_change = item1.get_stats().get_flat_defense_change() * flat_defense_weight
+        item_flat_speed_change = item1.get_stats().get_flat_speed_change() * flat_speed_weight
+        item_flat_health_change = item1.get_stats().get_flat_health_change() * flat_health_weight
 
         item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change
 
-        if isinstance(item, Weapon):
+        if isinstance(item1, Weapon):
             player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_weapon().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_weapon().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -150,7 +152,7 @@ class Strategy:
             if item_sum_stats > current_player_weapon_sum_stats:
                 return True
 
-        if isinstance(item, Shoes):
+        if isinstance(item1, Shoes):
             player_flat_attack_change = self.my_player.get_shoes().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_shoes().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_shoes().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -161,7 +163,7 @@ class Strategy:
             if item_sum_stats > current_player_shoes_sum_stats:
                 return True
 
-        if isinstance(item, Hat):
+        if isinstance(item1, Hat):
             player_flat_attack_change = self.my_player.get_hat().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_hat().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_hat().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -172,7 +174,7 @@ class Strategy:
             if item_sum_stats > current_player_hat_sum_stats:
                 return True
 
-        if isinstance(item, Clothes):
+        if isinstance(item1, Clothes):
             player_flat_attack_change = self.my_player.get_clothes().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_clothes().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_clothes().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -183,7 +185,7 @@ class Strategy:
             if item_sum_stats > current_player_clothes_sum_stats:
                 return True
 
-        if isinstance(item, Accessory):
+        if isinstance(item1, Accessory):
             player_flat_attack_change = self.my_player.get_accessory().get_stats().get_flat_attack_change() * flat_attack_weight
             player_flat_defense_change = self.my_player.get_accessory().get_stats().get_flat_defense_change() * flat_defense_weight
             player_flat_speed_change = self.my_player.get_accessory().get_stats().get_flat_speed_change() * flat_speed_weight
@@ -195,6 +197,32 @@ class Strategy:
                 return True
 
         return False
+
+    def is_better_item_compare(self, item1, item2, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight):
+
+        hierarchy = {Weapon: 4, Shoes: 0, Hat: 3, Clothes:1, Accessory:2}
+        if type(item1) is type(item2):
+            item_flat_attack_change = item1.get_stats().get_flat_attack_change() * flat_attack_weight
+            item_flat_defense_change = item1.get_stats().get_flat_defense_change() * flat_defense_weight
+            item_flat_speed_change = item1.get_stats().get_flat_speed_change() * flat_speed_weight
+            item_flat_health_change = item1.get_stats().get_flat_health_change() * flat_health_weight
+
+            item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change
+
+            player_flat_attack_change = item2.get_stats().get_flat_attack_change() * flat_attack_weight
+            player_flat_defense_change = item2.get_stats().get_flat_defense_change() * flat_defense_weight
+            player_flat_speed_change = item2.get_stats().get_flat_speed_change() * flat_speed_weight
+            player_flat_health_change = item2.get_stats().get_flat_health_change() * flat_health_weight
+
+            current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change
+
+            if item_sum_stats > current_player_weapon_sum_stats:
+                return True
+        else:
+            if hierarchy[type(item1)] > hierarchy[type(item2)]:
+                return True
+            return False
+
 
     # Returns the the next step to take on the optimal path to the endpoint form start point with given speed
     def path_find_with_speed(self, board, start, end, speed):
