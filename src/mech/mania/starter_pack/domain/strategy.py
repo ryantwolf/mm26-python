@@ -124,8 +124,8 @@ class Strategy:
             return True
 
         
-        item_flat_attack_change = item.get_stats().get_flat_attack_change()
-        item_flat_defense_change = item.get_stats().get_flat_defense_change()
+        item_flat_attack_change = item.get_stats().get_flat_attack_change()*5
+        item_flat_defense_change = item.get_stats().get_flat_defense_change()*5
         item_flat_speed_change = item.get_stats().get_flat_speed_change()
         item_flat_health_change = item.get_stats().get_flat_health_change()
 
@@ -299,10 +299,10 @@ class Strategy:
     
     def cost_of_monster(self, monster):
         distance_cost = self.curr_pos.manhattan_distance(monster.get_position())
-        experience_gained_per_hp = self.calc_exp_by_killing(monster)/monster.get_current_health()
+        experience_gained_per_hp = self.calc_exp_by_killing(monster)#/monster.get_current_health()
         kill_rounds = monster.get_current_health() / self.my_player.get_attack()
-        die_rounds = self.my_player.get_current_health() / monster.get_attack()
-        return distance_cost - experience_gained_per_hp * 5 + 3*abs(monster.get_level()-self.my_player.get_level())
+        die_rounds = self.my_player.get_current_health() #monster.get_attack()
+        return distance_cost - experience_gained_per_hp * 3 + 3*abs(monster.get_level()-self.my_player.get_level())
         
     def cost_of_item(self, item):
         if item is Wearable:
