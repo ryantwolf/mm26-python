@@ -70,7 +70,13 @@ class Strategy:
             best_item = None
             best_idx = 0
             for i in range(len(inventory)):
+                if isinstance(inventory, Weapon):
+                    self.logger.info("I see a weapon!")
+
                 if self.is_better_item(inventory[i], 5, 5, 5, 1, 10, 5):
+                    if isinstance(inventory[i], Weapon):
+                        self.logger.info("I see a weapon that is better than my current weapon!")
+
                     if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1, 10, 5):
                         best_item = inventory[i]
                         best_idx = i
