@@ -27,6 +27,13 @@ class Strategy:
         player_name (string): The name of your player
         game_state (GameState): The current game state
         """
+
+        EXPERIENCE_CHANGE_WEIGHT = 5
+        ATTACK_CHANGE_WEIGHT = 5
+        HEALTH_CHANGE_WEIGHT = 1
+        DEFENSE_CHANGE_WEIGHT = 3
+        SPEED_CHANGE_WEIGHT = 2
+
         self.api = API(game_state, player_name)
         self.my_player = game_state.get_all_players()[player_name]
         self.curr_pos = self.my_player.get_position()
@@ -63,13 +70,16 @@ class Strategy:
                 if isinstance(inventory[i], Weapon):
                     self.logger.info("I see a weapon! Attack is: " + str(inventory[i].get_attack()))
 
-                if self.is_better_item(inventory[i], 5, 5, 5, 1, 10, 5):
+                if self.is_better_item(inventory[i], ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
+                                       HEALTH_CHANGE_WEIGHT, EXPERIENCE_CHANGE_WEIGHT):
                     if isinstance(inventory[i], Weapon):
                         self.logger.info("I see a weapon that is better than my current weapon!")
 
-                    if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1, 10, 5):
+                    if self.is_better_item_compare(inventory[i], best_item, ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
+                                       HEALTH_CHANGE_WEIGHT, EXPERIENCE_CHANGE_WEIGHT):
                         best_item = inventory[i]
                         best_idx = i
+
                     else:
                         self.logger.info("The item " + str(inventory[i].get_stats()) + " is not better!")
 
@@ -81,7 +91,8 @@ class Strategy:
 
         # Getting items on current tile and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
-        good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(tile_items[i], 5, 5, 5, 1, 10, 5)]
+        good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(inventory[i], ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
+                                       HEALTH_CHANGE_WEIGHT, EXPERIENCE_CHANGE_WEIGHT)]
 
         if good_tile_items is not None and len(good_tile_items) > 0:
             if len(self.my_player.get_inventory()) < 16:
@@ -103,7 +114,8 @@ class Strategy:
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key, 5, 5, 5, 1, 10, 5)]
+        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(inventory[i], ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
+                                       HEALTH_CHANGE_WEIGHT, EXPERIENCE_CHANGE_WEIGHT)]
 
         self.logger.info("Good items on board " + str(good_items_dict))
         if good_items_dict is not None and len(good_items_dict) > 0:
@@ -148,7 +160,7 @@ class Strategy:
             action_index=0
         )
 
-    def is_better_item(self, item1, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight, weapon_attack_weight, experience_weight):
+    def is_better_item(self, item1, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight, experience_weight):
 
         if isinstance(item1, Consumable):
             return False
@@ -275,7 +287,7 @@ class Strategy:
 
         return False
 
-    def is_better_item_compare(self, item1, item2, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight, weapon_attack_weight, experience_weight):
+    def is_better_item_compare(self, item1, item2, flat_attack_weight, flat_defense_weight, flat_speed_weight, flat_health_weight, experience_weight):
         if (item2 is None):
             return True
         elif item1 is None:
