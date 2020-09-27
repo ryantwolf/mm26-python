@@ -172,7 +172,7 @@ class Strategy:
             #item_sum_stats += item1.get_attack()*weapon_attack_weight
 
             #player_flat_attack_change = self.my_player.get_weapon().get_stats().get_flat_attack_change() * flat_attack_weight
-            player_weapon_attack = self.my_player.get_weapon().get_attack()*weapon_attack_weight
+            player_weapon_attack = self.my_player.get_weapon().get_attack()
 
             # player_percent_attack_change = self.my_player.get_weapon().get_stats().get_percent_attack_change()
             # player_percent_defense_change = self.my_player.get_weapon().get_stats().get_percent_defense_change()
