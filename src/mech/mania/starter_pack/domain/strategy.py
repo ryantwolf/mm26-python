@@ -63,7 +63,7 @@ class Strategy:
                 if board[i][j - 1] > 0:
                     self.logger.info("going up")
                     dict_move[board[i][j - 1]] = Position.create(i, j - 1, start.get_board_id())
-
+            dict_move[board[i][j]] = Position.create(i,j, start.get_board_id())
             minimum = min(dict_move)
             pos = dict_move[minimum]
             i = pos.x
