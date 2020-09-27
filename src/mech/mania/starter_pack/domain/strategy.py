@@ -95,7 +95,7 @@ class Strategy:
         # Go to nearest best item
         items_dict = self.get_item_dict()
         self.logger.info("Items on board " + str(items_dict))
-        if items_dict is not None and len(items_dict) > 0:
+        if items_dict is not None and len(items_dict) > 0 and len(self.my_player.get_inventory()) < 16:
             self.logger.info("Going to item")
             nearest_item = min(items_dict, key=lambda item: self.cost_of_item(item))
             move_position = self.path_find(self.process_board(self.board), self.curr_pos, items_dict[nearest_item])
