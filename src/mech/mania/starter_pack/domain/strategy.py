@@ -61,7 +61,6 @@ class Strategy:
         self.logger.info("Weapon damage: " + str(self.my_player.get_weapon().get_attack()))
 
         total_experience_boost = 0
-        experience_items = []
 
         # iterate through inventory to see if there is a better item to equip
         if len(inventory) > 0:
@@ -76,6 +75,9 @@ class Strategy:
 
                 if isinstance(inventory[i], Clothes):
                     self.logger.info("I see clothes! The regen is: " + str(inventory[i].get_stats().get_flat_regen_per_turn()))
+
+                if isinstance(inventory[i], Shoes):
+                    self.logger.info("I see shoes! The regen is: " + str(inventory[i].get_stats().get_flat_regen_per_turn()))
 
                 if isinstance(inventory[i], Weapon):
                     self.logger.info("I see a weapon! Attack is: " + str(inventory[i].get_attack()))
