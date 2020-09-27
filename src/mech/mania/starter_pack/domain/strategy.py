@@ -75,10 +75,10 @@ class Strategy:
                 return self.equip(best_idx)
 
         # Equip last item picked up
-        last_action, type = self.memory.get_value("last_action", str)
-        self.logger.info(f"Last_action: '{last_action}'")
+        #last_action, type = self.memory.get_value("last_action", str)
+        #self.logger.info(f"Last_action: '{last_action}'")
 
-        if last_action is not None and last_action == "PICKUP":
+        '''if last_action is not None and last_action == "PICKUP":
             self.logger.info("Equipping an item")
             self.memory.set_value("last_action", "EQUIP")
             return CharacterDecision(
@@ -87,7 +87,7 @@ class Strategy:
                 action_index=0  # self.my_player.get_free_inventory_index()
             )
         if last_action is None:
-            self.logger.info("The Last action was None")
+            self.logger.info("The Last action was None")'''
 
         # Getting items on current times and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
