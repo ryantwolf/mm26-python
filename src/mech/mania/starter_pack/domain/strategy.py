@@ -61,7 +61,7 @@ class Strategy:
             best_idx = 0
             for i in range(len(inventory)):
                 if isinstance(inventory[i], Weapon):
-                    self.logger.info("I see a weapon!" + str(inventory[i].get_attack()))
+                    self.logger.info("I see a weapon! Attack is: " + str(inventory[i].get_attack()))
 
                 if self.is_better_item(inventory[i], 5, 5, 5, 1, 10, 5):
                     if isinstance(inventory[i], Weapon):
@@ -285,24 +285,28 @@ class Strategy:
             return False
         hierarchy = {Weapon: 4, Shoes: 0, Hat: 3, Clothes:1, Accessory:2}
         if type(item1) is type(item2):
-            item_flat_attack_change = item1.get_stats().get_flat_attack_change() * flat_attack_weight
-            item_flat_defense_change = item1.get_stats().get_flat_defense_change() * flat_defense_weight
-            item_flat_speed_change = item1.get_stats().get_flat_speed_change() * flat_speed_weight
-            item_flat_health_change = item1.get_stats().get_flat_health_change() * flat_health_weight
-            item_flat_experience_change = item1.get_stats().get_flat_experience_change() * experience_weight
+            if isinstance(item1, Weapon):
+                return item1.get_attack() > item2.get_attack()
 
-            item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change + item_flat_experience_change
+            else:
+                item_flat_attack_change = item1.get_stats().get_flat_attack_change() * flat_attack_weight
+                item_flat_defense_change = item1.get_stats().get_flat_defense_change() * flat_defense_weight
+                item_flat_speed_change = item1.get_stats().get_flat_speed_change() * flat_speed_weight
+                item_flat_health_change = item1.get_stats().get_flat_health_change() * flat_health_weight
+                item_flat_experience_change = item1.get_stats().get_flat_experience_change() * experience_weight
 
-            player_flat_attack_change = item2.get_stats().get_flat_attack_change() * flat_attack_weight
-            player_flat_defense_change = item2.get_stats().get_flat_defense_change() * flat_defense_weight
-            player_flat_speed_change = item2.get_stats().get_flat_speed_change() * flat_speed_weight
-            player_flat_health_change = item2.get_stats().get_flat_health_change() * flat_health_weight
-            player_flat_experience_change = item2.get_stats().get_flat_experience_change() * experience_weight
+                item_sum_stats = item_flat_attack_change + item_flat_defense_change + item_flat_speed_change + item_flat_health_change + item_flat_experience_change
 
-            current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
+                player_flat_attack_change = item2.get_stats().get_flat_attack_change() * flat_attack_weight
+                player_flat_defense_change = item2.get_stats().get_flat_defense_change() * flat_defense_weight
+                player_flat_speed_change = item2.get_stats().get_flat_speed_change() * flat_speed_weight
+                player_flat_health_change = item2.get_stats().get_flat_health_change() * flat_health_weight
+                player_flat_experience_change = item2.get_stats().get_flat_experience_change() * experience_weight
 
-            if item_sum_stats > current_player_weapon_sum_stats:
-                return True
+                current_player_weapon_sum_stats = player_flat_attack_change + player_flat_defense_change + player_flat_speed_change + player_flat_health_change + player_flat_experience_change
+
+                if item_sum_stats > current_player_weapon_sum_stats:
+                    return True
         else:
             if hierarchy[type(item1)] > hierarchy[type(item2)]:
                 return True
