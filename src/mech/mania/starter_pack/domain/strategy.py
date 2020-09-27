@@ -117,15 +117,15 @@ class Strategy:
         if board[i][j] == 0:
             return None
 
-        self.logger.info("Starting position for this move: ", (i, j))
+        self.logger.info("Starting position for this move: " + str((i, j)))
         pos = None
 
         for m in range(speed):
             i, j, pos = self.get_next_move_from_opt_board(board, i, j, start)
 
-        self.logger.info("I am moving to: ", (i, j))
+        self.logger.info("I am moving to: " + str((i, j)))
 
-        self.print_2D_grid(board)
+        #self.print_2D_grid(board)
         return pos
     
     def path_find(self, board, start, end):
@@ -133,35 +133,35 @@ class Strategy:
 
     def update_board_step(self, board, i, j):
         if board[i][j] > 0:
-            if self.checkBounds(board, i + 1, j):
+            if self.check_bounds(board, i + 1, j):
                 if board[i + 1][j] > board[i][j] + 1 or board[i + 1][j] == 0:
                     board[i + 1][j] = board[i][j] + 1
-            if self.checkBounds(board, i - 1, j):
+            if self.check_bounds(board, i - 1, j):
                 if board[i - 1][j] > board[i][j] + 1 or board[i - 1][j] == 0:
                     board[i - 1][j] = board[i][j] + 1
-            if self.checkBounds(board, i, j + 1):
+            if self.check_bounds(board, i, j + 1):
                 if board[i][j + 1] > board[i][j] + 1 or board[i][j + 1] == 0:
                     board[i][j + 1] = board[i][j] + 1
-            if self.checkBounds(board, i, j - 1):
+            if self.check_bounds(board, i, j - 1):
                 if board[i][j - 1] > board[i][j] + 1 or board[i][j - 1] == 0:
                     board[i][j - 1] = board[i][j] + 1
         return board
 
     def get_next_move_from_opt_board(self, board, i, j, start):
         dict_move = {}
-        if self.checkBounds(board, i + 1, j):
+        if self.check_bounds(board, i + 1, j):
             if board[i + 1][j] > 0:
                 dict_move[board[i + 1][j]] = Position.create(i + 1, j, start.get_board_id())
 
-        if self.checkBounds(board, i - 1, j):
+        if self.check_bounds(board, i - 1, j):
             if board[i - 1][j] > 0:
                 dict_move[board[i - 1][j]] = Position.create(i - 1, j, start.get_board_id())
 
-        if self.checkBounds(board, i, j + 1):
+        if self.check_bounds(board, i, j + 1):
             if board[i][j + 1] > 0:
                 dict_move[board[i][j + 1]] = Position.create(i, j + 1, start.get_board_id())
 
-        if self.checkBounds(board, i, j - 1):
+        if self.check_bounds(board, i, j - 1):
             if board[i][j - 1] > 0:
                 dict_move[board[i][j - 1]] = Position.create(i, j - 1, start.get_board_id())
         dict_move[board[i][j]] = Position.create(i, j, start.get_board_id())
@@ -281,8 +281,7 @@ class Strategy:
     def within_range(self, position: Position):
         return self.my_player.get_weapon().get_range() >= self.curr_pos.manhattan_distance(position)
     
-    def checkBounds(self, board, i, j):
-        #self.logger.info((i,j))
+    def check_bounds(self, board, i, j):
         if i < 0 or j < 0:
             return False
         if i >= len(board) or j >= len(board[0]):
