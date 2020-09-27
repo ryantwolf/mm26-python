@@ -55,7 +55,7 @@ class Strategy:
         self.logger.info("Attack: " + str(self.my_player.get_attack()))
 
         # Attack if monster is in range
-        if (self.within_range(best_monster.get_position())):
+        if self.within_range(best_monster.get_position()):
             self.logger.info("ATTACKING MONSTER")
             self.memory.set_value("last_action", "ATTACK")
             return CharacterDecision(
@@ -402,6 +402,9 @@ class Strategy:
         if (die_rounds < kill_rounds):
             cost += 25
         cost += distance_cost - experience_gained_per_hp * 30 + kill_rounds * .1 - die_rounds * .001
+
+        if monster.get_level() == 4 and monster.get_max_health() == 45:
+            cost -= 100
         return cost
         
     def cost_of_item(self, item):
