@@ -49,25 +49,9 @@ class Strategy:
 
         inventory = self.my_player.get_inventory()
         for i in range(len(inventory)):
-            item = inventory[i]
-            if isinstance(item, Weapon):
-                if self.my_player.get_weapon() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_weapon().get_flat_attack_change():
-                    return self.equip(i)
-            if isinstance(item, Shoes):
-                if self.my_player.get_shoes() == None or item.get_stats().get_flat_defense_change() > self.my_player.get_shoes().get_flat_defense_change():
-                    return self.equip(i)
-            if isinstance(item, Hat):
-                if self.my_player.get_hat() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_hat().get_flat_attack_change():
-                    return self.equip(i)
-            if isinstance(item, Clothes):
-                if self.my_player.get_clothes() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_clothes().get_flat_attack_change():
-                    return self.equip(i)
-            if isinstance(item, Accessory):
-                if self.my_player.get_accessory() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_accessory().get_flat_attack_change():
-                    return self.equip(i)
-            if isinstance(item, Consumable):
+            if self.is_better_item(inventory[i]):
                 return self.equip(i)
-
+            
         # Equip last item picked up
         last_action, type = self.memory.get_value("last_action", str)
         self.logger.info(f"Last_action: '{last_action}'")
@@ -118,6 +102,26 @@ class Strategy:
             action_position=move_position,
             action_index=0
         )
+
+    def is_better_item(self, item):
+        if isinstance(item, Weapon):
+            if self.my_player.get_weapon() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_weapon().get_flat_attack_change():
+                return True
+        if isinstance(item, Shoes):
+            if self.my_player.get_shoes() == None or item.get_stats().get_flat_defense_change() > self.my_player.get_shoes().get_flat_defense_change():
+                return True
+        if isinstance(item, Hat):
+            if self.my_player.get_hat() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_hat().get_flat_attack_change():
+                return True
+        if isinstance(item, Clothes):
+            if self.my_player.get_clothes() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_clothes().get_flat_attack_change():
+                return True
+        if isinstance(item, Accessory):
+            if self.my_player.get_accessory() == None or item.get_stats().get_flat_attack_change() > self.my_player.get_accessory().get_flat_attack_change():
+                return True
+        if isinstance(item, Consumable):
+            return True
+        return False
 
     # Returns the the next step to take on the optimal path to the endpoint form start point with given speed
     def path_find_with_speed(self, board, start, end, speed):
