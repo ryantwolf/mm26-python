@@ -50,7 +50,8 @@ class Strategy:
         self.logger.info("Current speed: " + str(self.my_player.get_speed()))
         self.logger.info("Current attack: " + str(self.my_player.get_attack()))
         self.logger.info("Current experience: " + str(self.my_player.get_experience()))
-        self.logger.info("Current level: " + str(self.my_player.get_level()) + "\n")
+        self.logger.info("Current level: " + str(self.my_player.get_level()))
+        self.logger.info("Current health: " + str(self.my_player.get_current_health) + "\n")
 
         # Attack if monster is in range
         if (self.within_range(best_monster.get_position())):
