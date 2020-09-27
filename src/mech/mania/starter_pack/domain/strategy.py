@@ -28,11 +28,11 @@ class Strategy:
         game_state (GameState): The current game state
         """
 
-        EXPERIENCE_CHANGE_WEIGHT = 5
+        EXPERIENCE_CHANGE_WEIGHT = 10
         ATTACK_CHANGE_WEIGHT = 5
         HEALTH_CHANGE_WEIGHT = 1
-        DEFENSE_CHANGE_WEIGHT = 3
-        SPEED_CHANGE_WEIGHT = 2
+        DEFENSE_CHANGE_WEIGHT = 2
+        SPEED_CHANGE_WEIGHT = 1
 
         self.api = API(game_state, player_name)
         self.my_player = game_state.get_all_players()[player_name]
@@ -59,7 +59,9 @@ class Strategy:
         self.logger.info("Current experience: " + str(self.my_player.get_experience()))
         self.logger.info("Current level: " + str(self.my_player.get_level()) + "\n")
         self.logger.info("Weapon damage: " + str(self.my_player.get_weapon().get_attack()))
-        self.logger.info("Attack: " + str(self.my_player.get_attack()))
+
+        total_experience_boost = 0
+        experience_items = []
 
         # iterate through inventory to see if there is a better item to equip
         if len(inventory) > 0:
@@ -67,7 +69,14 @@ class Strategy:
             best_item = None
             best_idx = 0
             for i in range(len(inventory)):
-                self.logger.info("EXP of item: " + str(inventory[i].get_stats().get_flat_experience_change()))
+                total_experience_boost += inventory[i].get_stats().get_flat_experience_change()
+
+                if isinstance(inventory[i], Hat):
+                    self.logger.info("I see a hat! The regen is: " + str(inventory[i].get_stats().get_flat_regen_per_turn()))
+
+                if isinstance(inventory[i], Clothes):
+                    self.logger.info("I see clothes! The regen is: " + str(inventory[i].get_stats().get_flat_regen_per_turn()))
+
                 if isinstance(inventory[i], Weapon):
                     self.logger.info("I see a weapon! Attack is: " + str(inventory[i].get_attack()))
 
@@ -89,6 +98,8 @@ class Strategy:
                 return self.equip(best_idx)
             else:
                 self.logger.info("No better item was found!")
+
+        self.logger.info("Total experience boost in inventory: " + str(total_experience_boost))
 
         # Getting items on current tile and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
