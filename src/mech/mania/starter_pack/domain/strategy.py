@@ -69,8 +69,8 @@ class Strategy:
              best_item = None
              best_idx = 0
              for i in range(len(inventory)):
-                 if self.is_better_item(inventory[i], 5, 5, 5, 1):
-                     if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1):
+                 if self.is_better_item(inventory[i], 5, 5, 5, 1, 10, 5):
+                     if self.is_better_item_compare(inventory[i], best_item, 5, 5, 5, 1, 10, 5):
                          best_item = inventory[i]
                          best_idx = i
              if best_item is not None:
@@ -78,7 +78,7 @@ class Strategy:
 
         # Getting items on current tile and picking up
         tile_items = self.board.get_tile_at(self.curr_pos).get_items()
-        good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(tile_items[i], 5, 5, 5, 1, 10)]
+        good_tile_items = [i for i in range(len(tile_items)) if self.is_better_item(tile_items[i], 5, 5, 5, 1, 10, 5)]
 
         if good_tile_items is not None and len(good_tile_items) > 0 and len(self.my_player.get_inventory()) < 16:
             self.logger.info("\nThere are items on my tile, picking up item")
@@ -92,7 +92,7 @@ class Strategy:
 
         # Go to nearest best item
         items_dict = self.get_item_dict()
-        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key, 5, 5, 5, 1, 10)]
+        good_items_dict = [key for key in items_dict.keys() if self.is_better_item(key, 5, 5, 5, 1, 10, 5)]
 
         self.logger.info("Good items on board " + str(good_items_dict))
         if good_items_dict is not None and len(good_items_dict) > 0:
