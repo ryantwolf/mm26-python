@@ -67,6 +67,7 @@ class Strategy:
             best_item = None
             best_idx = 0
             for i in range(len(inventory)):
+                self.logger.info("EXP of item: " + str(inventory[i].get_stats().get_flat_experience_change()))
                 if isinstance(inventory[i], Weapon):
                     self.logger.info("I see a weapon! Attack is: " + str(inventory[i].get_attack()))
 
