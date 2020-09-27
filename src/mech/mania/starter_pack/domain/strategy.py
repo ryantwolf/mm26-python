@@ -28,10 +28,10 @@ class Strategy:
         game_state (GameState): The current game state
         """
 
-        EXPERIENCE_CHANGE_WEIGHT = 10
-        ATTACK_CHANGE_WEIGHT = 5
-        HEALTH_CHANGE_WEIGHT = 1
-        DEFENSE_CHANGE_WEIGHT = 2
+        EXPERIENCE_CHANGE_WEIGHT = 1000
+        ATTACK_CHANGE_WEIGHT = 500
+        HEALTH_CHANGE_WEIGHT = 0
+        DEFENSE_CHANGE_WEIGHT = 250
         SPEED_CHANGE_WEIGHT = 1
 
         self.api = API(game_state, player_name)
@@ -84,6 +84,7 @@ class Strategy:
 
                 if self.is_better_item(inventory[i], ATTACK_CHANGE_WEIGHT, DEFENSE_CHANGE_WEIGHT, SPEED_CHANGE_WEIGHT,
                                        HEALTH_CHANGE_WEIGHT, EXPERIENCE_CHANGE_WEIGHT):
+
                     if isinstance(inventory[i], Weapon):
                         self.logger.info("I see a weapon that is better than my current weapon!")
 
